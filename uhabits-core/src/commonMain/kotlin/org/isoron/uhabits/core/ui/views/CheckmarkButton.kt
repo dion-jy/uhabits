@@ -42,8 +42,8 @@ class CheckmarkButton(
             }
         )
         val text = when (value) {
-            0 -> FontAwesome.TIMES
-            else -> FontAwesome.CHECK
+            1, 2 -> FontAwesome.CHECK
+            else -> FontAwesome.TIMES
         }
         canvas.drawText(text, canvas.getWidth() / 2.0, canvas.getHeight() / 2.0)
     }
