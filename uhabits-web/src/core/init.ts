@@ -3,6 +3,7 @@ import {
   JsDatabase,
   SQLModelFactory,
   CommandRunner,
+  createTaskRunner,
   setToday,
   LocalDate,
 } from "./bridge";
@@ -15,26 +16,6 @@ export interface AppServices {
   modelFactory: ModelFactory;
   commandRunner: CommandRunner;
   sqlDb: SqlJsDb;
-}
-
-// Minimal TaskRunner that executes tasks synchronously on the main thread.
-// CommandRunner creates inline Task objects with doInBackground() and
-// onPostExecute(). On the web, sql.js is synchronous, so we just call them
-// in sequence.
-function createTaskRunner() {
-  return {
-    execute(task: { doInBackground(): void; onPostExecute?(): void }) {
-      task.doInBackground();
-      task.onPostExecute?.();
-    },
-    addListener() {},
-    removeListener() {},
-    publishProgress() {},
-    get activeTaskCount() {
-      return 0;
-    },
-    async await() {},
-  };
 }
 
 function updateToday() {
@@ -65,8 +46,7 @@ export async function initApp(): Promise<AppServices> {
   const modelFactory = new SQLModelFactory(database);
   const habitList = modelFactory.buildHabitList();
   const taskRunner = createTaskRunner();
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const commandRunner = new CommandRunner(taskRunner as any);
+  const commandRunner = new CommandRunner(taskRunner);
 
   // 6. Recompute all habits (mirrors HabitsApplication.kt startup)
   for (const habit of habitList.toArray()) {

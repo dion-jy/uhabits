@@ -1,5 +1,7 @@
 package org.isoron.platform.io
 
+import org.isoron.uhabits.core.DATABASE_VERSION
+import org.isoron.uhabits.core.database.SQLParser
 import org.khronos.webgl.Uint8Array
 import org.khronos.webgl.set
 import kotlin.js.JsExport
@@ -109,6 +111,25 @@ class JsDatabase(val db: dynamic) : Database {
 
     override fun close() {
         db.close()
+    }
+}
+
+/**
+ * Mirrors HabitsDatabaseOpener.onUpgrade() from uhabits-android.
+ * Applies migrations using core's SQLParser so the web app has zero
+ * schema logic of its own. [migrationSQLs] is indexed from 0 where
+ * index 0 = migration 9, index 1 = migration 10, etc.
+ */
+@JsExport
+fun migrateDatabase(db: Database, migrationSQLs: Array<String>) {
+    if (db.getVersion() < 8) db.setVersion(8)
+    val currentVersion = db.getVersion()
+    if (currentVersion >= DATABASE_VERSION) return
+    for (v in (currentVersion + 1)..DATABASE_VERSION) {
+        val sql = migrationSQLs[v - 9]
+        val commands = SQLParser.parse(sql)
+        for (cmd in commands) db.run(cmd)
+        db.setVersion(v)
     }
 }
 
