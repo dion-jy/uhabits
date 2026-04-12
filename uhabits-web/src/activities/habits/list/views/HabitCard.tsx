@@ -17,7 +17,7 @@ interface HabitCardProps {
 }
 
 const BUTTON_SIZE = 48;
-const RING_SIZE = 30;
+const RING_SIZE = 20;
 
 export function HabitCard({
   habit,
@@ -42,7 +42,7 @@ export function HabitCard({
       <div className={styles.card} onDoubleClick={onEdit}>
         <JsView
           className={styles.ring}
-          view={new Ring(color, score, 3, 12, theme, false)}
+          view={new Ring(color, score, 3.5, 7, theme, false)}
           width={RING_SIZE}
           height={RING_SIZE}
         />
