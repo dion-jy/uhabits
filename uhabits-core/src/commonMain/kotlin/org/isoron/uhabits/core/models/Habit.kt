@@ -19,9 +19,11 @@
 package org.isoron.uhabits.core.models
 
 import org.isoron.platform.time.getToday
+import kotlin.js.JsExport
 import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
 
+@JsExport
 @OptIn(ExperimentalUuidApi::class)
 data class Habit(
     var color: PaletteColor = PaletteColor(8),

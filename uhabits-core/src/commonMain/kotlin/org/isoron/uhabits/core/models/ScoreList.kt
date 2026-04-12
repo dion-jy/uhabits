@@ -21,9 +21,11 @@ package org.isoron.uhabits.core.models
 import org.isoron.platform.Synchronized
 import org.isoron.platform.time.LocalDate
 import org.isoron.uhabits.core.models.Score.Companion.compute
+import kotlin.js.JsExport
 import kotlin.math.max
 import kotlin.math.min
 
+@JsExport
 class ScoreList {
 
     private val map = mutableMapOf<LocalDate, Score>()

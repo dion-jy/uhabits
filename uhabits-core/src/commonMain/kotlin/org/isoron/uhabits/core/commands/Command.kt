@@ -18,6 +18,9 @@
  */
 package org.isoron.uhabits.core.commands
 
+import kotlin.js.JsExport
+
+@JsExport
 interface Command {
     fun run()
 }

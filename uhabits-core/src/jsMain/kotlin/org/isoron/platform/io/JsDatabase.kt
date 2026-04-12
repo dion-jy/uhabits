@@ -2,6 +2,7 @@ package org.isoron.platform.io
 
 import org.khronos.webgl.Uint8Array
 import org.khronos.webgl.set
+import kotlin.js.JsExport
 import kotlin.js.Promise
 
 @JsModule("sql.js")
@@ -100,6 +101,7 @@ class JsPreparedStatement(
     }
 }
 
+@JsExport
 class JsDatabase(val db: dynamic) : Database {
     override fun prepareStatement(sql: String): PreparedStatement {
         return JsPreparedStatement(db, sql)
@@ -110,6 +112,7 @@ class JsDatabase(val db: dynamic) : Database {
     }
 }
 
+@JsExport
 class JsDatabaseOpener(
     private val sqlJs: dynamic,
     private val storage: JsFileStorage? = null

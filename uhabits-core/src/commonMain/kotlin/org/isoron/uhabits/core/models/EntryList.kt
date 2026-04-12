@@ -28,9 +28,11 @@ import org.isoron.uhabits.core.models.Entry.Companion.UNKNOWN
 import org.isoron.uhabits.core.models.Entry.Companion.YES_AUTO
 import org.isoron.uhabits.core.models.Entry.Companion.YES_MANUAL
 import kotlin.collections.set
+import kotlin.js.JsExport
 import kotlin.math.max
 import kotlin.math.min
 
+@JsExport
 open class EntryList {
 
     private val entriesByDate: HashMap<LocalDate, Entry> = HashMap()

@@ -1,5 +1,8 @@
 package org.isoron.uhabits.core.models
 
+import kotlin.js.JsExport
+
+@JsExport
 enum class HabitType(val value: Int) {
     YES_NO(0), NUMERICAL(1);
 

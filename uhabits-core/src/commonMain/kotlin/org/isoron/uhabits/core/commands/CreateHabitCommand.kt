@@ -21,7 +21,9 @@ package org.isoron.uhabits.core.commands
 import org.isoron.uhabits.core.models.Habit
 import org.isoron.uhabits.core.models.HabitList
 import org.isoron.uhabits.core.models.ModelFactory
+import kotlin.js.JsExport
 
+@JsExport
 data class CreateHabitCommand(
     val modelFactory: ModelFactory,
     val habitList: HabitList,

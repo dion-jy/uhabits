@@ -18,6 +18,9 @@
  */
 package org.isoron.uhabits.core.models
 
+import kotlin.js.JsExport
+
+@JsExport
 data class Frequency(
     var numerator: Int,
     var denominator: Int

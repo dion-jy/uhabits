@@ -18,10 +18,13 @@
  */
 package org.isoron.uhabits.core.models
 
+import kotlin.js.JsExport
+
 /**
  * Interface implemented by factories that provide concrete implementations of
  * the core model classes.
  */
+@JsExport
 interface ModelFactory {
 
     fun buildHabit(): Habit {

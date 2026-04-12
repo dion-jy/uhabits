@@ -25,10 +25,12 @@ import org.isoron.uhabits.core.models.EntryList
 import org.isoron.uhabits.core.models.ModelFactory
 import org.isoron.uhabits.core.models.ScoreList
 import org.isoron.uhabits.core.models.StreakList
+import kotlin.js.JsExport
 
 /**
  * Factory that provides models backed by an SQLite database.
  */
+@JsExport
 @Inject
 class SQLModelFactory(
     val database: org.isoron.platform.io.Database

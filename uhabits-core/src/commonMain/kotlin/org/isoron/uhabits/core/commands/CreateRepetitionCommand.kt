@@ -22,7 +22,9 @@ import org.isoron.platform.time.LocalDate
 import org.isoron.uhabits.core.models.Entry
 import org.isoron.uhabits.core.models.Habit
 import org.isoron.uhabits.core.models.HabitList
+import kotlin.js.JsExport
 
+@JsExport
 data class CreateRepetitionCommand(
     val habitList: HabitList,
     val habit: Habit,

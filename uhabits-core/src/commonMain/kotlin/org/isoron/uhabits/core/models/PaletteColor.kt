@@ -19,6 +19,9 @@
 
 package org.isoron.uhabits.core.models
 
+import kotlin.js.JsExport
+
+@JsExport
 data class PaletteColor(val paletteIndex: Int) {
     fun toCsvColor(): String {
         return arrayOf(

@@ -19,7 +19,14 @@
 package org.isoron.uhabits.core.models
 
 import org.isoron.platform.time.LocalDate
+import kotlin.js.JsExport
 
+@JsExport
+fun nextToggleValueJs(value: Int, isSkipEnabled: Boolean, areQuestionMarksEnabled: Boolean): Int {
+    return Entry.nextToggleValue(value, isSkipEnabled, areQuestionMarksEnabled)
+}
+
+@JsExport
 data class Entry(
     val date: LocalDate,
     val value: Int,

@@ -1,5 +1,8 @@
 package org.isoron.uhabits.core.models
 
+import kotlin.js.JsExport
+
+@JsExport
 enum class NumericalHabitType(val value: Int) {
     AT_LEAST(0), AT_MOST(1);
 

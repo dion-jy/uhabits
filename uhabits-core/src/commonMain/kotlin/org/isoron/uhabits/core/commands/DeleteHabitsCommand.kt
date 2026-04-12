@@ -20,7 +20,9 @@ package org.isoron.uhabits.core.commands
 
 import org.isoron.uhabits.core.models.Habit
 import org.isoron.uhabits.core.models.HabitList
+import kotlin.js.JsExport
 
+@JsExport
 data class DeleteHabitsCommand(
     val habitList: HabitList,
     val selected: List<Habit>

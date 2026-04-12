@@ -28,6 +28,12 @@ kotlin {
     jvmToolchain(17)
 
     js(IR) {
+        binaries.library()
+        generateTypeScriptDefinitions()
+        compilerOptions {
+            target.set("es2015")
+        }
+        useEsModules()
         browser {
             testTask {
                 useKarma {
@@ -101,6 +107,20 @@ mokkery {
 tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinJvmCompile> {
     compilerOptions {
         freeCompilerArgs.add("-jvm-default=enable")
+    }
+}
+
+tasks.withType<org.jetbrains.kotlin.gradle.tasks.Kotlin2JsCompile>().configureEach {
+    compilerOptions {
+        target.set("es2015")
+        freeCompilerArgs.add("-Xes-long-as-bigint")
+    }
+}
+
+tasks.withType<org.jetbrains.kotlin.gradle.targets.js.ir.KotlinJsIrLink>().configureEach {
+    compilerOptions {
+        target.set("es2015")
+        freeCompilerArgs.add("-Xes-long-as-bigint")
     }
 }
 

@@ -20,10 +20,13 @@ package org.isoron.uhabits.core.models
 
 import org.isoron.platform.io.csvLine
 import org.isoron.platform.io.format
+import kotlin.js.JsExport
+import kotlin.js.JsName
 
 /**
  * An ordered collection of [Habit]s.
  */
+@JsExport
 abstract class HabitList : Iterable<Habit> {
     open val observable: ModelObservable = ModelObservable()
 
@@ -37,8 +40,10 @@ abstract class HabitList : Iterable<Habit> {
      * populated by some pre-existing habits, for example, from a certain
      * database.
      */
+    @JsName("HabitListDefault")
     constructor()
 
+    @JsName("HabitListWithFilter")
     protected constructor(filter: HabitMatcher) {
         this.filter = filter
     }
@@ -155,6 +160,7 @@ abstract class HabitList : Iterable<Habit> {
      *
      * @param habit the habit that has been modified.
      */
+    @JsName("updateSingle")
     open fun update(habit: Habit) {
         update(listOf(habit))
     }
@@ -203,6 +209,9 @@ abstract class HabitList : Iterable<Habit> {
     }
 
     abstract fun resort()
+
+    open fun toArray(): Array<Habit> = this.toList().toTypedArray()
+
     enum class Order {
         BY_NAME_ASC,
         BY_NAME_DESC,

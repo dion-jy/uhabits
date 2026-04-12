@@ -21,7 +21,10 @@ package org.isoron.uhabits.core.ui.views
 
 import org.isoron.platform.gui.Color
 import org.isoron.uhabits.core.models.PaletteColor
+import kotlin.js.JsExport
+import kotlin.js.JsName
 
+@JsExport
 abstract class Theme {
     open val appBackgroundColor = Color(0xf4f4f4)
     open val cardBackgroundColor = Color(0xFAFAFA)
@@ -36,6 +39,7 @@ abstract class Theme {
     open val toolbarBackgroundColor = Color(0xf4f4f4)
     open val toolbarColor = Color(0xffffff)
 
+    @JsName("colorByPaletteColor")
     fun color(paletteColor: PaletteColor): Color {
         return color(paletteColor.paletteIndex)
     }
@@ -71,8 +75,10 @@ abstract class Theme {
     val regularTextSize = 17.0
 }
 
+@JsExport
 open class LightTheme : Theme()
 
+@JsExport
 open class DarkTheme : Theme() {
     override val appBackgroundColor = Color(0x212121)
     override val cardBackgroundColor = Color(0x303030)

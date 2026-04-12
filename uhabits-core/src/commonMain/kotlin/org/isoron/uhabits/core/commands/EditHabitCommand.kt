@@ -21,7 +21,9 @@ package org.isoron.uhabits.core.commands
 import org.isoron.uhabits.core.models.Habit
 import org.isoron.uhabits.core.models.HabitList
 import org.isoron.uhabits.core.models.HabitNotFoundException
+import kotlin.js.JsExport
 
+@JsExport
 data class EditHabitCommand(
     val habitList: HabitList,
     val habitId: Long,

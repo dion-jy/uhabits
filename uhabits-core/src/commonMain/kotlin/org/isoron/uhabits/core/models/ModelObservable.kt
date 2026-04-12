@@ -19,11 +19,13 @@
 package org.isoron.uhabits.core.models
 
 import org.isoron.platform.Synchronized
+import kotlin.js.JsExport
 
 /**
  * A ModelObservable allows objects to subscribe themselves to it and receive
  * notifications whenever the model is changed.
  */
+@JsExport
 class ModelObservable {
     private val listeners: MutableList<Listener>
 

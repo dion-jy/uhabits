@@ -22,7 +22,9 @@ import me.tatarka.inject.annotations.Inject
 import org.isoron.uhabits.core.AppScope
 import org.isoron.uhabits.core.tasks.Task
 import org.isoron.uhabits.core.tasks.TaskRunner
+import kotlin.js.JsExport
 
+@JsExport
 @AppScope
 @Inject
 open class CommandRunner(

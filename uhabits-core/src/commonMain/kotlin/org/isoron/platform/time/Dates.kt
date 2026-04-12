@@ -19,13 +19,17 @@
 
 package org.isoron.platform.time
 
+import kotlin.js.JsExport
+import kotlin.js.JsName
 import kotlin.math.ceil
 
 private var currentToday: LocalDate? = null
 
+@JsExport
 fun getToday(): LocalDate =
     currentToday ?: error("getToday() called before setToday()")
 
+@JsExport
 fun setToday(date: LocalDate) {
     currentToday = date
 }
@@ -34,6 +38,7 @@ fun resetToday() {
     currentToday = null
 }
 
+@JsExport
 enum class DayOfWeek(val daysSinceSunday: Int) {
     SUNDAY(0),
     MONDAY(1),
@@ -44,6 +49,7 @@ enum class DayOfWeek(val daysSinceSunday: Int) {
     SATURDAY(6)
 }
 
+@JsExport
 data class LocalDate(val daysSince2000: Int) : Comparable<LocalDate> {
     override fun compareTo(other: LocalDate): Int =
         daysSince2000.compareTo(other.daysSince2000)
@@ -52,6 +58,7 @@ data class LocalDate(val daysSince2000: Int) : Comparable<LocalDate> {
     var monthCache = -1
     var dayCache = -1
 
+    @JsName("fromYearMonthDay")
     constructor(year: Int, month: Int, day: Int) :
         this(daysSince2000(year, month, day))
 

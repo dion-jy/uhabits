@@ -20,9 +20,11 @@ package org.isoron.uhabits.core.models
 
 import org.isoron.platform.JvmStatic
 import org.isoron.platform.time.LocalDate
+import kotlin.js.JsExport
 import kotlin.math.pow
 import kotlin.math.sqrt
 
+@JsExport
 data class Score(
     val date: LocalDate,
     val value: Double

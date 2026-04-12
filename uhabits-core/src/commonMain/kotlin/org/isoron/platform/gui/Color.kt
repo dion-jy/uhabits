@@ -19,6 +19,10 @@
 
 package org.isoron.platform.gui
 
+import kotlin.js.JsExport
+import kotlin.js.JsName
+
+@JsExport
 data class Color(
     val red: Double,
     val green: Double,
@@ -30,6 +34,7 @@ data class Color(
             return 0.21 * red + 0.72 * green + 0.07 * blue
         }
 
+    @JsName("fromRgb")
     constructor(rgb: Int) : this(
         ((rgb shr 16) and 0xFF) / 255.0,
         ((rgb shr 8) and 0xFF) / 255.0,

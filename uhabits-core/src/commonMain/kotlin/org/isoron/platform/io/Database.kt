@@ -1,9 +1,11 @@
 package org.isoron.platform.io
 
 import org.isoron.uhabits.core.database.SQLParser
+import kotlin.js.JsExport
 
 enum class StepResult { ROW, DONE }
 
+@JsExport
 interface PreparedStatement {
     fun step(): StepResult
     fun getInt(index: Int): Int
@@ -23,11 +25,13 @@ interface PreparedStatement {
     fun finalize()
 }
 
+@JsExport
 interface Database {
     fun prepareStatement(sql: String): PreparedStatement
     fun close()
 }
 
+@JsExport
 interface DatabaseOpener {
     fun open(path: String): Database
 }
