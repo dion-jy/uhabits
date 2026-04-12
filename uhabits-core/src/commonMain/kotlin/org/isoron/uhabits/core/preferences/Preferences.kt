@@ -25,9 +25,11 @@ import org.isoron.platform.utils.StringUtils.Companion.joinLongs
 import org.isoron.platform.utils.StringUtils.Companion.splitLongs
 import org.isoron.uhabits.core.models.HabitList
 import org.isoron.uhabits.core.ui.ThemeSwitcher
+import kotlin.js.JsExport
 import kotlin.math.max
 import kotlin.math.min
 
+@JsExport
 open class Preferences(private val storage: Storage) {
     private val listeners: MutableList<Listener>
     private var shouldReverseCheckmarks: Boolean? = null

@@ -1,0 +1,44 @@
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px;
+  height: 56px;
+  background: var(--card-bg);
+  border-bottom: 1px solid var(--low-contrast);
+}
+
+.title {
+  font-size: 20px;
+  font-weight: 500;
+  color: var(--high-contrast);
+}
+
+.actions {
+  display: flex;
+  gap: 4px;
+}
+
+.button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  font-size: 22px;
+  color: var(--medium-contrast);
+  border-radius: 50%;
+  transition: background 0.15s ease;
+}
+
+.button:hover {
+  background: var(--low-contrast);
+}
+
+.icon {
+  font-family: "FontAwesome";
+  font-size: 18px;
+}

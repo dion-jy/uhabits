@@ -51,15 +51,18 @@ class CoroutineTaskRunner(
         val job = scope.launch {
             activeCount++
             listeners.forEach { it.onTaskStarted(task) }
-            task.onPreExecute()
-            if (!task.isCanceled()) {
-                withContext(ioDispatcher) {
-                    task.doInBackground()
+            try {
+                task.onPreExecute()
+                if (!task.isCanceled()) {
+                    withContext(ioDispatcher) {
+                        task.doInBackground()
+                    }
                 }
+            } finally {
+                task.onPostExecute()
+                activeCount--
+                listeners.forEach { it.onTaskFinished(task) }
             }
-            task.onPostExecute()
-            activeCount--
-            listeners.forEach { it.onTaskFinished(task) }
         }
         job.invokeOnCompletion { jobs.remove(job) }
         jobs.add(job)

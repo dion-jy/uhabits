@@ -11,6 +11,6 @@ import kotlin.js.JsExport
 fun createTaskRunner(): TaskRunner {
     return CoroutineTaskRunner(
         mainDispatcher = Dispatchers.Unconfined,
-        ioDispatcher = Dispatchers.Unconfined,
+        ioDispatcher = Dispatchers.Unconfined
     )
 }

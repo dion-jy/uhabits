@@ -24,6 +24,7 @@ import org.isoron.platform.time.LocalDate
 import org.isoron.platform.time.getToday
 import org.isoron.uhabits.core.commands.CommandRunner
 import org.isoron.uhabits.core.commands.CreateRepetitionCommand
+import org.isoron.uhabits.core.models.Entry
 import org.isoron.uhabits.core.models.Entry.Companion.YES_MANUAL
 import org.isoron.uhabits.core.models.Habit
 import org.isoron.uhabits.core.models.HabitList
@@ -37,8 +38,11 @@ import org.isoron.uhabits.core.tasks.Task
 import org.isoron.uhabits.core.tasks.TaskRunner
 import org.isoron.uhabits.core.ui.callbacks.CheckMarkDialogCallback
 import org.isoron.uhabits.core.ui.callbacks.NumberPickerCallback
+import kotlin.js.JsExport
+import kotlin.js.JsName
 import kotlin.math.roundToInt
 
+@JsExport
 @Inject
 open class ListHabitsBehavior(
     private val habitList: HabitList,
@@ -137,6 +141,17 @@ open class ListHabitsBehavior(
             CreateRepetitionCommand(habitList, habit, date, value, notes)
         )
         if (value == YES_MANUAL) screen.showConfetti(habit.color, x, y)
+    }
+
+    @JsName("onToggleComputed")
+    open fun onToggle(habit: Habit, date: LocalDate) {
+        val entry = habit.computedEntries.get(date)
+        val newValue = Entry.nextToggleValue(
+            entry.value,
+            prefs.isSkipEnabled,
+            prefs.areQuestionMarksEnabled
+        )
+        onToggle(habit, date, newValue, entry.notes, 0f, 0f)
     }
 
     enum class Message {

@@ -24,7 +24,9 @@ import org.isoron.platform.gui.Font
 import org.isoron.platform.gui.View
 import org.isoron.platform.time.LocalDate
 import org.isoron.platform.time.LocalDateFormatter
+import kotlin.js.JsExport
 
+@JsExport
 class HabitListHeader(
     private val today: LocalDate,
     private val nButtons: Int,

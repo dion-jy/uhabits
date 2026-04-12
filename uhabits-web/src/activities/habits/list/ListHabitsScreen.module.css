@@ -1,0 +1,84 @@
+.screen {
+  min-height: 100vh;
+  background: var(--app-bg);
+}
+
+.habitList {
+  display: flex;
+  flex-direction: column;
+}
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+}
+
+.dialog {
+  background: var(--card-bg);
+  border-radius: 12px;
+  padding: 24px;
+  width: 90%;
+  max-width: 400px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.dialogTitle {
+  font-size: 20px;
+  font-weight: 500;
+  color: var(--high-contrast);
+}
+
+.input {
+  padding: 12px;
+  border: 1px solid var(--low-contrast);
+  border-radius: 8px;
+  font-size: 16px;
+  background: var(--app-bg);
+  color: var(--high-contrast);
+  outline: none;
+}
+
+.input:focus {
+  border-color: var(--medium-contrast);
+}
+
+.dialogActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.cancelBtn,
+.saveBtn {
+  padding: 8px 20px;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.cancelBtn {
+  background: none;
+  color: var(--medium-contrast);
+}
+
+.cancelBtn:hover {
+  background: var(--low-contrast);
+}
+
+.saveBtn {
+  background: #039BE5;
+  color: #fff;
+}
+
+.saveBtn:hover {
+  opacity: 0.85;
+}

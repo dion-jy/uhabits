@@ -19,6 +19,9 @@
 
 package org.isoron.platform.gui
 
+import kotlin.js.JsExport
+
+@JsExport
 interface View {
     fun draw(canvas: Canvas)
     fun onClick(x: Double, y: Double) {

@@ -24,7 +24,9 @@ import org.isoron.platform.gui.Color
 import org.isoron.platform.gui.Font
 import org.isoron.platform.gui.FontAwesome
 import org.isoron.platform.gui.View
+import kotlin.js.JsExport
 
+@JsExport
 class CheckmarkButton(
     private val value: Int,
     private val color: Color,

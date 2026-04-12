@@ -32,6 +32,7 @@ kotlin {
         generateTypeScriptDefinitions()
         compilerOptions {
             target.set("es2015")
+            freeCompilerArgs.add("-Xenable-suspend-function-exporting")
         }
         useEsModules()
         browser {

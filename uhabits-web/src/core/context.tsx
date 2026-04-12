@@ -1,20 +1,47 @@
 import { createContext, useContext } from "react";
-import type { AppServices } from "./init";
+import type { AppContainer, ListHabitsContainer } from "./container";
 
-const AppContext = createContext<AppServices | null>(null);
+// App-scoped context — available everywhere
+const AppContext = createContext<AppContainer | null>(null);
 
 export function AppProvider({
-  services,
+  container,
   children,
 }: {
-  services: AppServices;
+  container: AppContainer;
   children: React.ReactNode;
 }) {
-  return <AppContext.Provider value={services}>{children}</AppContext.Provider>;
+  return <AppContext.Provider value={container}>{children}</AppContext.Provider>;
 }
 
-export function useApp(): AppServices {
+export function useAppContainer(): AppContainer {
   const ctx = useContext(AppContext);
-  if (!ctx) throw new Error("useApp must be used within AppProvider");
+  if (!ctx) throw new Error("useAppContainer must be used within AppProvider");
+  return ctx;
+}
+
+// Screen-scoped context — available within a screen
+const ListHabitsContext = createContext<ListHabitsContainer | null>(null);
+
+export function ListHabitsProvider({
+  container,
+  children,
+}: {
+  container: ListHabitsContainer;
+  children: React.ReactNode;
+}) {
+  return (
+    <ListHabitsContext.Provider value={container}>
+      {children}
+    </ListHabitsContext.Provider>
+  );
+}
+
+export function useListHabitsContainer(): ListHabitsContainer {
+  const ctx = useContext(ListHabitsContext);
+  if (!ctx)
+    throw new Error(
+      "useListHabitsContainer must be used within ListHabitsProvider",
+    );
   return ctx;
 }

@@ -1,6 +1,7 @@
 package org.isoron.platform.time
 
 import kotlin.js.Date
+import kotlin.js.JsExport
 
 actual fun computeToday(hourOffset: Int, minuteOffset: Int): LocalDate {
     val now = Date()
@@ -28,6 +29,7 @@ private fun toLocaleDateString(date: Date, locale: String, options: dynamic): St
     return js("date.toLocaleDateString(locale, options)").unsafeCast<String>()
 }
 
+@JsExport
 class JsLocalDateFormatter(private val locale: String = "en-US") : LocalDateFormatter {
     override fun shortWeekdayName(weekday: DayOfWeek): String {
         val date = weekdayToJsDate(weekday)

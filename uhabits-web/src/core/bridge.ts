@@ -14,18 +14,26 @@ export {
   EditHabitCommand,
   CreateRepetitionCommand,
   DeleteHabitsCommand,
+  deleteHabitCommand,
   JsDatabase,
   JsDatabaseOpener,
   migrateDatabase,
   LightTheme,
   DarkTheme,
+  Color,
+  JsCanvas,
+  JsLocalDateFormatter,
+  CheckmarkButton,
+  Ring,
+  HabitListHeader,
   createTaskRunner,
+  createPreferences,
+  createListHabitsBehavior,
   Score,
   ScoreList,
   LocalDate,
   getToday,
   setToday,
-  nextToggleValueJs,
 } from "uhabits-core";
 
 export type {
@@ -33,14 +41,6 @@ export type {
   Database,
   ModelObservable,
   ModelFactory,
+  View,
   KtList,
 } from "uhabits-core";
-
-// Constants re-exported for convenience (mirrors Entry companion object)
-export const EntryValue = {
-  YES_MANUAL: 2,
-  YES_AUTO: 1,
-  NO: 0,
-  SKIP: 3,
-  UNKNOWN: -1,
-} as const;

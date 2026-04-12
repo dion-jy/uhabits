@@ -1,3 +1,24 @@
+@font-face {
+  font-family: "NotoSans";
+  src: url("/fonts/NotoSans-Regular.ttf") format("truetype");
+  font-weight: normal;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: "NotoSansBold";
+  src: url("/fonts/NotoSans-Bold.ttf") format("truetype");
+  font-weight: bold;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: "FontAwesome";
+  src: url("/fonts/fontawesome-webfont.ttf") format("truetype");
+  font-weight: normal;
+  font-style: normal;
+}
+
 *,
 *::before,
 *::after {
@@ -6,12 +27,17 @@
   padding: 0;
 }
 
+html {
+  height: 100%;
+}
+
 body {
-  font-family: "Noto Sans", system-ui, -apple-system, sans-serif;
+  font-family: "NotoSans", system-ui, -apple-system, sans-serif;
   background: var(--app-bg, #f4f4f4);
   color: var(--high-contrast, #202020);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  min-height: 100%;
 }
 
 .loading,

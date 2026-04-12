@@ -14,8 +14,12 @@ export default defineConfig({
       jszip: path.resolve(__dirname, "node_modules/jszip"),
     },
   },
+  optimizeDeps: {
+    exclude: ["uhabits-core"],
+  },
   build: {
     target: "esnext",
+    sourcemap: true,
   },
   test: {
     browser: {

@@ -19,23 +19,42 @@ private fun sqlJsOpenDatabase(sqlJs: dynamic, data: dynamic): dynamic {
     return js("new sqlJs.Database(data)")
 }
 
+/**
+ * Wraps a call into sql.js, converting thrown JS strings into proper
+ * [RuntimeException]s. sql.js throws bare strings (e.g. `throw "Statement
+ * closed"`) instead of Error objects, which bypass Kotlin's `catch (e:
+ * Throwable)` entirely. This wrapper ensures all sql.js errors are catchable
+ * by Kotlin code and carry a stack trace.
+ */
+private inline fun <T> sqlCall(block: () -> T): T {
+    return try {
+        block()
+    } catch (t: Throwable) {
+        throw t
+    } catch (e: dynamic) {
+        throw RuntimeException(e.toString() as String)
+    }
+}
+
 class JsPreparedStatement(
     private val db: dynamic,
     sql: String
 ) : PreparedStatement {
-    private val stmt: dynamic = db.prepare(sql)
+    private val stmt: dynamic = sqlCall { db.prepare(sql) }
     private var currentRow: dynamic = null
     private var bindings: dynamic = js("[]")
     private var needsBind: Boolean = false
 
     override fun step(): StepResult {
-        if (needsBind) {
-            stmt.bind(bindings)
-            needsBind = false
+        return sqlCall {
+            if (needsBind) {
+                stmt.bind(bindings)
+                needsBind = false
+            }
+            val hasRow = stmt.step() as Boolean
+            currentRow = if (hasRow) stmt.get() else null
+            if (hasRow) StepResult.ROW else StepResult.DONE
         }
-        val hasRow = stmt.step() as Boolean
-        currentRow = if (hasRow) stmt.get() else null
-        return if (hasRow) StepResult.ROW else StepResult.DONE
     }
 
     override fun getInt(index: Int): Int = (currentRow[index] as Number).toInt()
@@ -92,14 +111,14 @@ class JsPreparedStatement(
     }
 
     override fun reset() {
-        stmt.reset()
+        sqlCall { stmt.reset() }
         currentRow = null
         bindings = js("[]")
         needsBind = false
     }
 
     override fun finalize() {
-        stmt.free()
+        sqlCall { stmt.free() }
     }
 }
 
@@ -110,7 +129,7 @@ class JsDatabase(val db: dynamic) : Database {
     }
 
     override fun close() {
-        db.close()
+        sqlCall { db.close() }
     }
 }
 

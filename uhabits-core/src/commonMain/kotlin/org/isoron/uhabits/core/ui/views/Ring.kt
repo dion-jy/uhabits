@@ -23,9 +23,11 @@ import org.isoron.platform.gui.Canvas
 import org.isoron.platform.gui.Color
 import org.isoron.platform.gui.View
 import org.isoron.platform.io.format
+import kotlin.js.JsExport
 import kotlin.math.max
 import kotlin.math.min
 
+@JsExport
 class Ring(
     val color: Color,
     val percentage: Double,

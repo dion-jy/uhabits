@@ -22,3 +22,4 @@ kotlin-js-store
 .kotlin
 .vite
 dist
+test-results

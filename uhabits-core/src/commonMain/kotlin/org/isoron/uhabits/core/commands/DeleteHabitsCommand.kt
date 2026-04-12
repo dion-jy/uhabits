@@ -31,3 +31,8 @@ data class DeleteHabitsCommand(
         for (h in selected) habitList.remove(h)
     }
 }
+
+@JsExport
+fun deleteHabitCommand(habitList: HabitList, habit: Habit): DeleteHabitsCommand {
+    return DeleteHabitsCommand(habitList, listOf(habit))
+}

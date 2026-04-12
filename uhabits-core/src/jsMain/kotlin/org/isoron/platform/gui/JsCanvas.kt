@@ -3,9 +3,11 @@ package org.isoron.platform.gui
 import kotlinx.browser.document
 import org.w3c.dom.CanvasRenderingContext2D
 import org.w3c.dom.HTMLCanvasElement
+import kotlin.js.JsExport
 import kotlin.math.PI
 import kotlin.math.roundToInt
 
+@JsExport
 class JsCanvas(
     private val canvas: HTMLCanvasElement,
     private val pixelScale: Double = 2.0
@@ -143,6 +145,8 @@ class JsCanvas(
         copyCtx.drawImage(canvas, 0.0, 0.0)
         return JsImage(copy)
     }
+
+    fun getCanvasElement(): HTMLCanvasElement = canvas
 
     override fun measureText(text: String): Double {
         updateFont()
