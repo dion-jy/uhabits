@@ -136,6 +136,16 @@ core_build() {
     gradle_run :uhabits-core:build || fail
 }
 
+# Web
+# -----------------------------------------------------------------------------
+
+web_build() {
+    log_info "Installing web dependencies..."
+    (cd uhabits-web && npm install) || fail
+    log_info "Building uhabits-web..."
+    (cd uhabits-web && npm run build) || fail
+}
+
 # Android
 # -----------------------------------------------------------------------------
 
@@ -438,6 +448,7 @@ main() {
             shift; _parse_opts "$@"
             if [ -n "$CLEAN" ]; then clean; fi
             core_build
+            web_build
             android_build
             ;;
         android-accept-licenses)
