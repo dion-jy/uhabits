@@ -20,3 +20,5 @@ crowdin.yml
 kotlin-js-store
 *.md
 .kotlin
+.vite
+dist
