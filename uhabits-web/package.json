@@ -1,0 +1,27 @@
+{
+  "name": "uhabits-web",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview",
+    "build-core": "cd .. && ./gradlew :uhabits-core:jsProductionLibraryDistribution"
+  },
+  "dependencies": {
+    "jszip": "^3.10.1",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "sprintf-js": "^1.1.3",
+    "sql.js": "1.11.0",
+    "uhabits-core": "file:../uhabits-core/build/dist/js/productionLibrary"
+  },
+  "devDependencies": {
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "@types/sql.js": "^1.4.11",
+    "@vitejs/plugin-react": "^4.4.0",
+    "typescript": "^5.7.0",
+    "vite": "^6.0.0"
+  }
+}
