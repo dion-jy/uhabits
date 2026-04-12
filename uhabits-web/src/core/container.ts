@@ -1,5 +1,6 @@
 import type { Database as SqlJsDb } from "sql.js";
 import {
+  Habit,
   JsDatabase,
   SQLModelFactory,
   CommandRunner,
@@ -7,10 +8,12 @@ import {
   Frequency,
   PaletteColor,
   HabitType,
+  Entry,
   createTaskRunner,
   createPreferences,
   createListHabitsBehavior,
   setToday,
+  getToday,
   LocalDate,
 } from "./bridge";
 import type { HabitList, ModelFactory } from "./bridge";
@@ -18,7 +21,6 @@ import type { ListHabitsBehavior, Preferences } from "uhabits-core";
 
 type TaskRunner = ReturnType<typeof createTaskRunner>;
 import { createSqlJsDatabase } from "./database";
-import { loadFromIndexedDB, saveToIndexedDB } from "./persistence";
 
 /**
  * App-scoped container — mirrors HabitsApplicationComponent on Android.
@@ -79,12 +81,33 @@ async function loadFonts() {
   ]);
 }
 
+function nextGaussian(): number {
+  const u1 = Math.random();
+  const u2 = Math.random();
+  return Math.sqrt(-2.0 * Math.log(u1)) * Math.cos(2.0 * Math.PI * u2);
+}
+
+function randomize(habit: InstanceType<typeof Habit>) {
+  const YES_MANUAL = 2;
+  habit.originalEntries.clear();
+  let strength = 50.0;
+  const today = getToday();
+  for (let i = 0; i < 365 * 5; i++) {
+    if (i % 7 === 0) strength = Math.max(0, Math.min(100, strength + 10 * nextGaussian()));
+    if (Math.random() * 100 > strength) continue;
+    let value = YES_MANUAL;
+    if (habit.isNumerical) {
+      value = Math.round(1000 + 250 * nextGaussian() * strength / 100) * 1000;
+    }
+    habit.originalEntries.add(new Entry(today.minus(i), value));
+  }
+}
+
 export async function createAppContainer(): Promise<AppContainer> {
   updateToday();
   await loadFonts();
 
-  const saved = await loadFromIndexedDB();
-  const sqlDb = await createSqlJsDatabase(saved ?? undefined);
+  const sqlDb = await createSqlJsDatabase();
   const container = new AppContainer(sqlDb);
 
   // Seed default habits if database is empty
@@ -102,21 +125,15 @@ export async function createAppContainer(): Promise<AppContainer> {
       h.type = HabitType.YES_NO;
       new CreateHabitCommand(container.modelFactory, container.habitList, h).run();
     }
+    for (const habit of container.habitList.toArray()) {
+      randomize(habit);
+    }
   }
 
   // Recompute all habits (mirrors HabitsApplication.kt startup)
   for (const habit of container.habitList.toArray()) {
     habit.recompute();
   }
-
-  // Auto-save after every command
-  container.commandRunner.addListener({
-    onCommandFinished: () => {
-      saveToIndexedDB(sqlDb).catch((err) => {
-        console.error("Failed to persist database to IndexedDB:", err);
-      });
-    },
-  } as any);
 
   return container;
 }
