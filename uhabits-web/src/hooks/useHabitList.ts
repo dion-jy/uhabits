@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { useAppContainer } from "../core/context";
-import type { Habit } from "../core/bridge";
+import type { Habit } from "uhabits-core";
 
 export function useHabitList(): Habit[] {
   const { habitList, commandRunner } = useAppContainer();

@@ -1,6 +1,6 @@
 import initSqlJs, { type Database as SqlJsDb } from "sql.js";
 import sqlWasmUrl from "sql.js/dist/sql-wasm.wasm?url";
-import { JsDatabase, migrateDatabase } from "./bridge";
+import { JsDatabase, migrateDatabase } from "uhabits-core";
 
 // Migration SQL files from uhabits-core, bundled as raw strings by Vite.
 import m09 from "../../../uhabits-core/assets/main/migrations/09.sql?raw";

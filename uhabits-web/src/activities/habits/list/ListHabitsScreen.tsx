@@ -21,7 +21,7 @@ import {
   HabitType,
   HabitListHeader,
   JsLocalDateFormatter,
-} from "../../../core/bridge";
+} from "uhabits-core";
 import styles from "./ListHabitsScreen.module.css";
 
 const fmt = new JsLocalDateFormatter();

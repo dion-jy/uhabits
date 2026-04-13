@@ -11,7 +11,7 @@ import {
   LocalDate,
   setToday,
   createTaskRunner,
-} from "./bridge";
+} from "uhabits-core";
 import { createSqlJsDatabase } from "./database";
 
 describe("smoke test", () => {

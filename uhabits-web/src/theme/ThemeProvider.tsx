@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useEffect, useMemo } from "react";
-import { LightTheme, DarkTheme } from "../core/bridge";
+import { LightTheme, DarkTheme } from "uhabits-core";
 import type { Color } from "uhabits-core";
 
 type ThemeMode = "light" | "dark";

@@ -1,5 +1,5 @@
 import { useRef, useEffect } from "react";
-import { JsCanvas } from "../../../core/bridge";
+import { JsCanvas } from "uhabits-core";
 import type { View } from "uhabits-core";
 
 interface CoreViewProps {

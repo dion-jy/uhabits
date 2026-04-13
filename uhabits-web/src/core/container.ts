@@ -8,6 +8,7 @@ import {
   Frequency,
   PaletteColor,
   HabitType,
+  NumericalHabitType,
   Entry,
   createTaskRunner,
   createPreferences,
@@ -15,9 +16,8 @@ import {
   setToday,
   getToday,
   LocalDate,
-} from "./bridge";
-import type { HabitList, ModelFactory } from "./bridge";
-import type { ListHabitsBehavior, Preferences } from "uhabits-core";
+} from "uhabits-core";
+import type { HabitList, ModelFactory, ListHabitsBehavior, Preferences } from "uhabits-core";
 
 type TaskRunner = ReturnType<typeof createTaskRunner>;
 import { createSqlJsDatabase } from "./database";
@@ -97,7 +97,9 @@ function randomize(habit: InstanceType<typeof Habit>) {
     if (Math.random() * 100 > strength) continue;
     let value = YES_MANUAL;
     if (habit.isNumerical) {
-      value = Math.round(1000 + 250 * nextGaussian() * strength / 100) * 1000;
+      const target = habit.targetValue;
+      const raw = target * (0.5 + nextGaussian() * 0.3) * strength / 50;
+      value = Math.round(Math.max(0, raw) * 1000);
     }
     habit.originalEntries.add(new Entry(today.minus(i), value));
   }
@@ -112,17 +114,40 @@ export async function createAppContainer(): Promise<AppContainer> {
 
   // Seed default habits if database is empty
   if (container.habitList.size() === 0) {
-    const names = [
-      "Wake up early", "Meditate", "Read books", "Exercise",
-      "Cook healthy dinner", "Write journal", "Learn French",
-      "Practice guitar", "Play chess", "Call a friend",
+    const habits: Array<{
+      name: string;
+      type?: "numerical";
+      target?: number;
+      targetType?: "at_most";
+      unit?: string;
+    }> = [
+      { name: "Wake up early" },
+      { name: "Run", type: "numerical", target: 5, unit: "km" },
+      { name: "Meditate" },
+      { name: "Read books" },
+      { name: "Exercise" },
+      { name: "Write journal" },
+      { name: "Screen time", type: "numerical", target: 2, unit: "hours", targetType: "at_most" },
+      { name: "Learn French" },
+      { name: "Practice guitar" },
+      { name: "Sleep", type: "numerical", target: 8, unit: "hours" },
     ];
-    for (const name of names) {
+    for (let i = 0; i < habits.length; i++) {
+      const def = habits[i];
       const h = container.modelFactory.buildHabit();
-      h.name = name;
+      h.name = def.name;
       h.frequency = new Frequency(1, 1);
-      h.color = new PaletteColor(names.indexOf(name) % 20);
-      h.type = HabitType.YES_NO;
+      h.color = new PaletteColor(i % 20);
+      if (def.type === "numerical") {
+        h.type = HabitType.NUMERICAL;
+        h.targetValue = def.target!;
+        h.unit = def.unit!;
+        h.targetType = def.targetType === "at_most"
+          ? NumericalHabitType.AT_MOST
+          : NumericalHabitType.AT_LEAST;
+      } else {
+        h.type = HabitType.YES_NO;
+      }
       new CreateHabitCommand(container.modelFactory, container.habitList, h).run();
     }
     for (const habit of container.habitList.toArray()) {

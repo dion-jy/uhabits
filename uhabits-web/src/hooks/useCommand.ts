@@ -1,6 +1,6 @@
 import { useCallback } from "react";
 import { useAppContainer } from "../core/context";
-import type { Command } from "../core/bridge";
+import type { Command } from "uhabits-core";
 
 export function useCommand() {
   const { commandRunner } = useAppContainer();
