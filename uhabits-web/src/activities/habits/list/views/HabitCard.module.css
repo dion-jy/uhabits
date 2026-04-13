@@ -23,14 +23,16 @@
   -webkit-line-clamp: 1;
   -webkit-box-orient: vertical;
   line-height: 1.3;
+  margin-top: -2px;
 }
 
 .ring {
-  margin: 0 6px 0 8px;
+  margin: 2px 8px 0 8px;
   flex-shrink: 0;
 }
 
 .checkmarks {
   display: flex;
   flex-shrink: 0;
+  height: 48px;
 }
