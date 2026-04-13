@@ -106,7 +106,7 @@ class CheckmarkButton(
         if (notes.isNotBlank()) {
             val cy = 0.8 * em
             canvas.setColor(color)
-            canvas.fillCircle(canvas.getWidth() - cy, cy, 8.0)
+            canvas.fillCircle(canvas.getWidth() - cy, cy, 3.0)
         }
     }
 }
