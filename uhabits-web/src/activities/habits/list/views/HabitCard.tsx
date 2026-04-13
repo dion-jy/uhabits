@@ -4,9 +4,12 @@ import {
   getToday,
   CheckmarkButton,
   CheckmarkButtonState,
+  NumberButton,
+  NumberButtonState,
+  HabitType,
   Ring,
-} from "../../../../core/bridge";
-import type { Habit } from "../../../../core/bridge";
+} from "uhabits-core";
+import type { Habit } from "uhabits-core";
 import styles from "./HabitCard.module.css";
 
 interface HabitCardProps {
@@ -51,17 +54,34 @@ export function HabitCard({
           {habit.name}
         </span>
         <div className={styles.checkmarks}>
-          {entries.map((entry, i) => (
-            <JsView
-              key={i}
-              view={new CheckmarkButton(
-                new CheckmarkButtonState(entry.value, color, theme, false, entry.notes),
-              )}
-              width={BUTTON_SIZE}
-              height={BUTTON_SIZE}
-              onClick={() => onToggle(i)}
-            />
-          ))}
+          {entries.map((entry, i) => {
+            const isNumerical = habit.type === HabitType.NUMERICAL;
+            const view = isNumerical
+              ? new NumberButton(
+                  new NumberButtonState(
+                    entry.value / 1000.0,
+                    color,
+                    habit.targetValue,
+                    habit.targetType.value,
+                    habit.unit,
+                    theme,
+                    false,
+                    entry.notes,
+                  ),
+                )
+              : new CheckmarkButton(
+                  new CheckmarkButtonState(entry.value, color, theme, false, entry.notes),
+                );
+            return (
+              <JsView
+                key={i}
+                view={view}
+                width={BUTTON_SIZE}
+                height={BUTTON_SIZE}
+                onClick={() => onToggle(i)}
+              />
+            );
+          })}
         </div>
       </div>
     </div>
