@@ -45,12 +45,10 @@ class EntryButtonViewTest : BaseViewTest() {
     override fun setUp() {
         super.setUp()
         view = component.getEntryButtonViewFactory().create().apply {
-            setState(
-                CheckmarkButtonState(
-                    value = Entry.NO,
-                    color = theme.color(5),
-                    theme = theme
-                )
+            state = CheckmarkButtonState(
+                value = Entry.NO,
+                color = theme.color(5),
+                theme = theme
             )
             onToggle = { _, _ -> toggled = true }
             onEdit = { edited = true }
