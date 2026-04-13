@@ -24,6 +24,7 @@ export {
   JsCanvas,
   JsLocalDateFormatter,
   CheckmarkButton,
+  CheckmarkButtonState,
   Ring,
   HabitListHeader,
   createTaskRunner,

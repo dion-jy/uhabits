@@ -23,5 +23,7 @@ class FontAwesome {
     companion object {
         const val CHECK = "\uf00c"
         const val TIMES = "\uf00d"
+        const val SKIP = "\uf068"
+        const val QUESTION = "\uf128"
     }
 }

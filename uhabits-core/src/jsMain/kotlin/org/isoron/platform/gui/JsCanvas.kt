@@ -16,6 +16,7 @@ class JsCanvas(
     private var fontSize = 12.0
     private var font = Font.REGULAR
     private var textAlign = TextAlign.CENTER
+    private var textStyle = TextStyle.FILL
 
     init {
         updateFont()
@@ -55,7 +56,10 @@ class JsCanvas(
             TextAlign.LEFT -> px
         }
         val yPos = py + (ascent - descent) / 2
-        ctx.fillText(text, xPos, yPos)
+        when (textStyle) {
+            TextStyle.FILL -> ctx.fillText(text, xPos, yPos)
+            TextStyle.STROKE -> ctx.strokeText(text, xPos, yPos)
+        }
     }
 
     override fun fillRect(x: Double, y: Double, width: Double, height: Double) {
@@ -135,6 +139,10 @@ class JsCanvas(
 
     override fun setTextAlign(align: TextAlign) {
         this.textAlign = align
+    }
+
+    override fun setTextStyle(style: TextStyle) {
+        this.textStyle = style
     }
 
     override fun toImage(): Image {

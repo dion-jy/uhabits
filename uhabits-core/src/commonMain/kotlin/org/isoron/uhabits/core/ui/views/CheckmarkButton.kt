@@ -23,28 +23,90 @@ import org.isoron.platform.gui.Canvas
 import org.isoron.platform.gui.Color
 import org.isoron.platform.gui.Font
 import org.isoron.platform.gui.FontAwesome
+import org.isoron.platform.gui.TextAlign
+import org.isoron.platform.gui.TextStyle
 import org.isoron.platform.gui.View
+import org.isoron.uhabits.core.models.Entry
 import kotlin.js.JsExport
 
 @JsExport
+data class CheckmarkButtonState(
+    val value: Int,
+    val color: Color,
+    val theme: Theme,
+    val showQuestionMark: Boolean = false,
+    val notes: String = ""
+)
+
+@JsExport
 class CheckmarkButton(
-    private val value: Int,
-    private val color: Color,
-    private val theme: Theme
+    val state: CheckmarkButtonState
 ) : View {
     override fun draw(canvas: Canvas) {
+        val value = state.value
+        val color = state.color
+        val theme = state.theme
+        val showQuestionMark = state.showQuestionMark
+        val notes = state.notes
+
         canvas.setFont(Font.FONT_AWESOME)
-        canvas.setFontSize(theme.smallTextSize * 1.5)
-        canvas.setColor(
-            when (value) {
-                2 -> color
-                else -> theme.lowContrastTextColor
+        canvas.setTextAlign(TextAlign.CENTER)
+
+        val iconColor = when (value) {
+            Entry.YES_MANUAL, Entry.YES_AUTO, Entry.SKIP -> color
+            Entry.NO -> {
+                if (showQuestionMark) {
+                    theme.mediumContrastTextColor
+                } else {
+                    theme.lowContrastTextColor
+                }
             }
-        )
-        val text = when (value) {
-            1, 2 -> FontAwesome.CHECK
-            else -> FontAwesome.TIMES
+            else -> theme.lowContrastTextColor
         }
-        canvas.drawText(text, canvas.getWidth() / 2.0, canvas.getHeight() / 2.0)
+        canvas.setColor(iconColor)
+
+        val icon = when (value) {
+            Entry.SKIP -> FontAwesome.SKIP
+            Entry.NO -> FontAwesome.TIMES
+            Entry.UNKNOWN -> {
+                if (showQuestionMark) {
+                    FontAwesome.QUESTION
+                } else {
+                    FontAwesome.TIMES
+                }
+            }
+            else -> FontAwesome.CHECK
+        }
+
+        val fontSize = when {
+            icon == FontAwesome.QUESTION -> theme.smallTextSize * 1.2
+            value == Entry.YES_AUTO -> theme.smallTextSize * 1.3
+            else -> theme.smallTextSize * 1.4
+        }
+        canvas.setFontSize(fontSize)
+
+        val em = canvas.measureText("m")
+        val centerX = canvas.getWidth() / 2.0
+        val centerY = canvas.getHeight() / 2.0
+
+        if (value == Entry.YES_AUTO) {
+            canvas.setStrokeWidth(2.5)
+            canvas.setTextStyle(TextStyle.STROKE)
+            canvas.drawText(icon, centerX, centerY)
+
+            canvas.setColor(theme.cardBackgroundColor)
+            canvas.setTextStyle(TextStyle.FILL)
+            canvas.drawText(icon, centerX, centerY)
+        } else {
+            canvas.setStrokeWidth(0.0)
+            canvas.setTextStyle(TextStyle.FILL)
+            canvas.drawText(icon, centerX, centerY)
+        }
+
+        if (notes.isNotBlank()) {
+            val cy = 0.8 * em
+            canvas.setColor(color)
+            canvas.fillCircle(canvas.getWidth() - cy, cy, 8.0)
+        }
     }
 }

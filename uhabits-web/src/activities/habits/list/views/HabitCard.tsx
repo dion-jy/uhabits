@@ -3,6 +3,7 @@ import { useTheme, useThemeColor } from "../../../../theme/ThemeProvider";
 import {
   getToday,
   CheckmarkButton,
+  CheckmarkButtonState,
   Ring,
 } from "../../../../core/bridge";
 import type { Habit } from "../../../../core/bridge";
@@ -53,7 +54,9 @@ export function HabitCard({
           {entries.map((entry, i) => (
             <JsView
               key={i}
-              view={new CheckmarkButton(entry.value, color, theme)}
+              view={new CheckmarkButton(
+                new CheckmarkButtonState(entry.value, color, theme, false, entry.notes),
+              )}
               width={BUTTON_SIZE}
               height={BUTTON_SIZE}
               onClick={() => onToggle(i)}

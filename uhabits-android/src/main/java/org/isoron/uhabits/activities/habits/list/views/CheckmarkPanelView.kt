@@ -24,8 +24,11 @@ import me.tatarka.inject.annotations.Inject
 import org.isoron.platform.time.LocalDate
 import org.isoron.platform.time.getToday
 import org.isoron.uhabits.core.models.Entry.Companion.UNKNOWN
+import org.isoron.uhabits.core.models.PaletteColor
 import org.isoron.uhabits.core.preferences.Preferences
+import org.isoron.uhabits.core.ui.views.CheckmarkButtonState
 import org.isoron.uhabits.inject.ActivityContext
+import org.isoron.uhabits.utils.currentTheme
 
 @Inject
 class CheckmarkPanelViewFactory(
@@ -48,7 +51,13 @@ class CheckmarkPanelView(
             setupButtons()
         }
 
-    var color = 0
+    var color: PaletteColor = PaletteColor(0)
+        set(value) {
+            field = value
+            setupButtons()
+        }
+
+    var isArchived: Boolean = false
         set(value) {
             field = value
             setupButtons()
@@ -77,18 +86,24 @@ class CheckmarkPanelView(
     @Synchronized
     override fun setupButtons() {
         val today = getToday()
+        val theme = currentTheme()
+        val actualColor = if (isArchived) {
+            theme.mediumContrastTextColor
+        } else {
+            theme.color(color.paletteIndex)
+        }
 
         buttons.forEachIndexed { index, button ->
             val date = today.minus(index + dataOffset)
-            button.value = when {
-                index + dataOffset < values.size -> values[index + dataOffset]
-                else -> UNKNOWN
-            }
-            button.notes = when {
-                index + dataOffset < notes.size -> notes[index + dataOffset]
-                else -> ""
-            }
-            button.color = color
+            val offset = index + dataOffset
+
+            button.state = CheckmarkButtonState(
+                value = if (offset < values.size) values[offset] else UNKNOWN,
+                color = actualColor,
+                theme = theme,
+                showQuestionMark = preferences.areQuestionMarksEnabled,
+                notes = if (offset < notes.size) notes[offset] else ""
+            )
             button.onToggle = { value, notes -> onToggle(date, value, notes) }
             button.onEdit = { onEdit(date) }
         }

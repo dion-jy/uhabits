@@ -65,10 +65,11 @@ class AndroidCanvas : Canvas {
     }
 
     override fun drawText(text: String, x: Double, y: Double) {
+        val em = textPaint.measureText("m")
         innerCanvas.drawText(
             text,
             x.toDp(),
-            y.toDp() + 0.6f * mHeight,
+            y.toDp() + 0.4f * em,
             textPaint
         )
     }
@@ -140,7 +141,9 @@ class AndroidCanvas : Canvas {
     }
 
     override fun setStrokeWidth(size: Double) {
-        paint.strokeWidth = size.toDp()
+        val px = size.toDp()
+        paint.strokeWidth = px
+        textPaint.strokeWidth = px
     }
 
     override fun fillArc(
@@ -177,6 +180,13 @@ class AndroidCanvas : Canvas {
             TextAlign.LEFT -> Paint.Align.LEFT
             TextAlign.CENTER -> Paint.Align.CENTER
             TextAlign.RIGHT -> Paint.Align.RIGHT
+        }
+    }
+
+    override fun setTextStyle(style: TextStyle) {
+        textPaint.style = when (style) {
+            TextStyle.FILL -> Paint.Style.FILL
+            TextStyle.STROKE -> Paint.Style.STROKE
         }
     }
 

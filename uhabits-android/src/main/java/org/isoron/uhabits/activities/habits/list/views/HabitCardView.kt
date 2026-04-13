@@ -264,14 +264,10 @@ class HabitCardView(
     }
 
     private fun copyAttributesFrom(h: Habit) {
-        fun getActiveColor(habit: Habit): Int {
-            return when (habit.isArchived) {
-                true -> sres.getColor(R.attr.contrast60)
-                false -> currentTheme().color(habit.color).toInt()
-            }
+        val c = when (h.isArchived) {
+            true -> sres.getColor(R.attr.contrast60)
+            false -> currentTheme().color(h.color).toInt()
         }
-
-        val c = getActiveColor(h)
         label.apply {
             text = h.name
             setTextColor(c)
@@ -280,7 +276,8 @@ class HabitCardView(
             setColor(c)
         }
         checkmarkPanel.apply {
-            color = c
+            color = h.color
+            isArchived = h.isArchived
             visibility = when (h.isNumerical) {
                 true -> View.GONE
                 false -> View.VISIBLE

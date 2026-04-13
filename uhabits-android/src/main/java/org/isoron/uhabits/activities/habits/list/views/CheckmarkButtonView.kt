@@ -20,28 +20,19 @@
 package org.isoron.uhabits.activities.habits.list.views
 
 import android.content.Context
-import android.graphics.Canvas
-import android.graphics.Color
-import android.graphics.Paint
-import android.graphics.RectF
-import android.text.TextPaint
 import android.view.HapticFeedbackConstants
 import android.view.View
 import android.view.View.MeasureSpec.EXACTLY
 import me.tatarka.inject.annotations.Inject
+import org.isoron.platform.gui.AndroidView
+import org.isoron.platform.gui.Color
 import org.isoron.uhabits.R
 import org.isoron.uhabits.core.models.Entry
-import org.isoron.uhabits.core.models.Entry.Companion.NO
-import org.isoron.uhabits.core.models.Entry.Companion.SKIP
-import org.isoron.uhabits.core.models.Entry.Companion.UNKNOWN
-import org.isoron.uhabits.core.models.Entry.Companion.YES_AUTO
-import org.isoron.uhabits.core.models.Entry.Companion.YES_MANUAL
 import org.isoron.uhabits.core.preferences.Preferences
+import org.isoron.uhabits.core.ui.views.CheckmarkButton
+import org.isoron.uhabits.core.ui.views.CheckmarkButtonState
+import org.isoron.uhabits.core.ui.views.LightTheme
 import org.isoron.uhabits.inject.ActivityContext
-import org.isoron.uhabits.utils.drawNotesIndicator
-import org.isoron.uhabits.utils.getFontAwesome
-import org.isoron.uhabits.utils.sp
-import org.isoron.uhabits.utils.sres
 import org.isoron.uhabits.utils.toMeasureSpec
 
 @Inject
@@ -55,33 +46,23 @@ class CheckmarkButtonViewFactory(
 class CheckmarkButtonView(
     context: Context,
     val preferences: Preferences
-) : View(context),
+) : AndroidView<CheckmarkButton>(context),
     View.OnClickListener,
     View.OnLongClickListener {
 
-    var color: Int = Color.BLACK
+    var state = CheckmarkButtonState(
+        value = Entry.UNKNOWN,
+        color = Color(0),
+        theme = LightTheme()
+    )
         set(value) {
             field = value
-            invalidate()
-        }
-
-    var value: Int = 0
-        set(value) {
-            field = value
-            invalidate()
-        }
-
-    var notes = ""
-        set(value) {
-            field = value
-            invalidate()
+            view = CheckmarkButton(value)
+            postInvalidate()
         }
 
     var onToggle: (Int, String) -> Unit = { _, _ -> }
-
     var onEdit: () -> Unit = { }
-
-    private var drawer = Drawer()
 
     init {
         setOnClickListener(this)
@@ -89,36 +70,23 @@ class CheckmarkButtonView(
     }
 
     fun performToggle() {
-        value = Entry.nextToggleValue(
-            value = value,
+        val newValue = Entry.nextToggleValue(
+            value = state.value,
             isSkipEnabled = preferences.isSkipEnabled,
             areQuestionMarksEnabled = preferences.areQuestionMarksEnabled
         )
-        onToggle(value, notes)
+        state = state.copy(value = newValue)
+        onToggle(newValue, state.notes)
         performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
-        invalidate()
     }
 
     override fun onClick(v: View) {
-        if (preferences.isShortToggleEnabled) {
-            performToggle()
-        } else {
-            onEdit()
-        }
+        if (preferences.isShortToggleEnabled) performToggle() else onEdit()
     }
 
     override fun onLongClick(v: View): Boolean {
-        if (preferences.isShortToggleEnabled) {
-            onEdit()
-        } else {
-            performToggle()
-        }
+        if (preferences.isShortToggleEnabled) onEdit() else performToggle()
         return true
-    }
-
-    override fun onDraw(canvas: Canvas) {
-        super.onDraw(canvas)
-        drawer.draw(canvas)
     }
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
@@ -128,78 +96,5 @@ class CheckmarkButtonView(
             width.toMeasureSpec(EXACTLY),
             height.toMeasureSpec(EXACTLY)
         )
-    }
-
-    private inner class Drawer {
-        private val rect = RectF()
-        private val bgColor = sres.getColor(R.attr.cardBgColor)
-        private val lowContrastColor = sres.getColor(R.attr.contrast40)
-        private val mediumContrastColor = sres.getColor(R.attr.contrast60)
-        private val pNotesIndicator = Paint()
-
-        private val paint = TextPaint().apply {
-            typeface = getFontAwesome()
-            isAntiAlias = true
-            textAlign = Paint.Align.CENTER
-        }
-
-        fun draw(canvas: Canvas) {
-            paint.color = when (value) {
-                YES_MANUAL, YES_AUTO, SKIP -> color
-                NO -> {
-                    if (preferences.areQuestionMarksEnabled) {
-                        mediumContrastColor
-                    } else {
-                        lowContrastColor
-                    }
-                }
-                else -> lowContrastColor
-            }
-            val id = when (value) {
-                SKIP -> R.string.fa_skipped
-                NO -> R.string.fa_times
-                UNKNOWN -> {
-                    if (preferences.areQuestionMarksEnabled) {
-                        R.string.fa_question
-                    } else {
-                        R.string.fa_times
-                    }
-                }
-                else -> R.string.fa_check
-            }
-            paint.textSize = when {
-                id == R.string.fa_question -> sp(12.0f)
-                value == YES_AUTO -> sp(13.0f)
-                else -> sp(14.0f)
-            }
-            if (value == YES_AUTO) {
-                paint.strokeWidth = 5f
-                paint.style = Paint.Style.STROKE
-            } else {
-                paint.strokeWidth = 0f
-                paint.style = Paint.Style.FILL
-            }
-
-            val label = resources.getString(id)
-            val em = paint.measureText("m")
-
-            rect.set(0f, 0f, width.toFloat(), height.toFloat())
-            rect.offset(0f, 0.4f * em)
-            canvas.drawText(label, rect.centerX(), rect.centerY(), paint)
-
-            if (value == YES_AUTO) {
-                paint.color = bgColor
-                paint.style = Paint.Style.FILL
-                canvas.drawText(label, rect.centerX(), rect.centerY(), paint)
-            }
-
-            drawNotesIndicator(
-                pNotesIndicator = pNotesIndicator,
-                canvas = canvas,
-                color = color,
-                size = em,
-                notes = notes
-            )
-        }
     }
 }

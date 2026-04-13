@@ -31,6 +31,8 @@ import java.awt.RenderingHints.VALUE_ANTIALIAS_ON
 import java.awt.RenderingHints.VALUE_FRACTIONALMETRICS_ON
 import java.awt.RenderingHints.VALUE_TEXT_ANTIALIAS_ON
 import java.awt.font.FontRenderContext
+import java.awt.font.TextLayout
+import java.awt.geom.AffineTransform
 import java.awt.geom.RoundRectangle2D
 import java.awt.image.BufferedImage
 import kotlin.math.roundToInt
@@ -53,6 +55,7 @@ class JavaCanvas(
     private var fontSize = 12.0
     private var font = Font.REGULAR
     private var textAlign = TextAlign.CENTER
+    private var textStyle = TextStyle.FILL
     val widthPx = image.width
     val heightPx = image.height
     val g2d: Graphics2D = image.createGraphics()
@@ -90,35 +93,21 @@ class JavaCanvas(
     }
 
     override fun drawText(text: String, x: Double, y: Double) {
+        if (text.isEmpty()) return
         updateFont()
-        val bounds = g2d.font.getStringBounds(text, frc)
-        val bWidth = bounds.width.roundToInt()
-        val bHeight = bounds.height.roundToInt()
-        val bx = bounds.x.roundToInt()
-        val by = bounds.y.roundToInt()
-
-        when (textAlign) {
-            TextAlign.CENTER -> {
-                g2d.drawString(
-                    text,
-                    toPixel(x) - bx - bWidth / 2,
-                    toPixel(y) - by - bHeight / 2
-                )
-            }
-            TextAlign.LEFT -> {
-                g2d.drawString(
-                    text,
-                    toPixel(x) - bx,
-                    toPixel(y) - by - bHeight / 2
-                )
-            }
-            else -> {
-                g2d.drawString(
-                    text,
-                    toPixel(x) - bx - bWidth,
-                    toPixel(y) - by - bHeight / 2
-                )
-            }
+        val layout = TextLayout(text, g2d.font, frc)
+        val bounds = layout.bounds
+        val tx = when (textAlign) {
+            TextAlign.CENTER -> toPixel(x) - bounds.width / 2 - bounds.x
+            TextAlign.LEFT -> toPixel(x) - bounds.x
+            TextAlign.RIGHT -> toPixel(x) - bounds.width - bounds.x
+        }
+        val ty = toPixel(y) - bounds.height / 2 - bounds.y
+        val transform = AffineTransform.getTranslateInstance(tx, ty)
+        val outline = layout.getOutline(transform)
+        when (textStyle) {
+            TextStyle.FILL -> g2d.fill(outline)
+            TextStyle.STROKE -> g2d.draw(outline)
         }
     }
 
@@ -208,6 +197,10 @@ class JavaCanvas(
 
     override fun setTextAlign(align: TextAlign) {
         this.textAlign = align
+    }
+
+    override fun setTextStyle(style: TextStyle) {
+        this.textStyle = style
     }
 
     private fun createFont(path: String) = runBlocking<java.awt.Font> {

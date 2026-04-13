@@ -23,6 +23,10 @@ enum class TextAlign {
     LEFT, CENTER, RIGHT
 }
 
+enum class TextStyle {
+    FILL, STROKE
+}
+
 enum class Font {
     REGULAR,
     BOLD,
@@ -55,6 +59,7 @@ interface Canvas {
     )
     fun fillCircle(centerX: Double, centerY: Double, radius: Double)
     fun setTextAlign(align: TextAlign)
+    fun setTextStyle(style: TextStyle)
     fun toImage(): Image
     fun measureText(text: String): Double
 

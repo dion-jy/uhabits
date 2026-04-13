@@ -28,7 +28,7 @@ import org.isoron.uhabits.BaseViewTest
 import org.isoron.uhabits.core.models.Entry.Companion.NO
 import org.isoron.uhabits.core.models.Entry.Companion.YES_AUTO
 import org.isoron.uhabits.core.models.Entry.Companion.YES_MANUAL
-import org.isoron.uhabits.utils.PaletteUtils
+import org.isoron.uhabits.core.models.PaletteColor
 import org.junit.After
 import org.junit.Before
 import org.junit.Test
@@ -58,7 +58,7 @@ class EntryPanelViewTest : BaseViewTest() {
         view = component.getCheckmarkPanelViewFactory().create().apply {
             values = checkmarks
             buttonCount = 4
-            color = PaletteUtils.getAndroidTestColor(7)
+            color = PaletteColor(7)
         }
         view.onAttachedToWindow()
         measureView(view, dpToPixels(200), dpToPixels(200))

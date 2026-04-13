@@ -23,7 +23,8 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.MediumTest
 import org.isoron.uhabits.BaseViewTest
 import org.isoron.uhabits.core.models.Entry
-import org.isoron.uhabits.utils.PaletteUtils
+import org.isoron.uhabits.core.ui.views.CheckmarkButtonState
+import org.isoron.uhabits.core.ui.views.LightTheme
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -38,12 +39,19 @@ class EntryButtonViewTest : BaseViewTest() {
     var toggled = false
     var edited = false
 
+    private val theme = LightTheme()
+
     @Before
     override fun setUp() {
         super.setUp()
         view = component.getEntryButtonViewFactory().create().apply {
-            value = Entry.NO
-            color = PaletteUtils.getAndroidTestColor(5)
+            setState(
+                CheckmarkButtonState(
+                    value = Entry.NO,
+                    color = theme.color(5),
+                    theme = theme
+                )
+            )
             onToggle = { _, _ -> toggled = true }
             onEdit = { edited = true }
         }
@@ -52,19 +60,19 @@ class EntryButtonViewTest : BaseViewTest() {
 
     @Test
     fun testRender_explicitCheck() {
-        view.value = Entry.YES_MANUAL
+        view.state = view.state.copy(value = Entry.YES_MANUAL)
         assertRendersCheckedExplicitly()
     }
 
     @Test
     fun testRender_implicitCheck() {
-        view.value = Entry.YES_AUTO
+        view.state = view.state.copy(value = Entry.YES_AUTO)
         assertRendersCheckedImplicitly()
     }
 
     @Test
     fun testRender_unchecked() {
-        view.value = Entry.NO
+        view.state = view.state.copy(value = Entry.NO)
         assertRendersUnchecked()
     }
 
