@@ -128,12 +128,17 @@ gradle_run() {
 # Core
 # -----------------------------------------------------------------------------
 
-core_build() {
+core_assemble() {
+    log_info "Assembling uhabits-core..."
+    gradle_run kotlinUpgradeYarnLock || fail
+    gradle_run :uhabits-core:assemble || fail
+}
+
+core_check() {
     log_info "Formatting code..."
     gradle_run ktlintFormat || fail
-    log_info "Building uhabits-core..."
-    gradle_run kotlinUpgradeYarnLock || fail
-    gradle_run :uhabits-core:build || fail
+    log_info "Checking uhabits-core..."
+    gradle_run :uhabits-core:check || fail
 }
 
 # Web
@@ -400,7 +405,8 @@ _print_usage() {
 CI/CD script for Loop Habit Tracker.
 
 Usage:
-    build.sh build [options]
+    build.sh assemble [options]
+    build.sh check [options]
     build.sh android-accept-licenses
     build.sh android-setup <API>
     build.sh android-tests <API> [options]
@@ -408,7 +414,8 @@ Usage:
     build.sh android-accept-images [options]
 
 Commands:
-    build                   Build the app and run small tests
+    assemble                Compile and package core, web, and android
+    check                   Format code, run tests, and lint
     android-accept-licenses Accept all Android SDK licenses
     android-setup           Create Android virtual machine
     android-tests           Run medium and large Android tests on an emulator
@@ -444,12 +451,17 @@ clean() {
 
 main() {
     case "$1" in
-        build)
+        assemble)
             shift; _parse_opts "$@"
             if [ -n "$CLEAN" ]; then clean; fi
-            core_build
+            core_assemble
             web_build
             android_build
+            ;;
+        check)
+            shift; _parse_opts "$@"
+            if [ -n "$CLEAN" ]; then clean; fi
+            core_check
             ;;
         android-accept-licenses)
             android_accept_licenses
