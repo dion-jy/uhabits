@@ -93,6 +93,7 @@ function ListHabitsScreenContent() {
         <>
           {listWidth > 0 && (
             <JsView
+              className={styles.listHeader}
               view={new HabitListHeader(getToday(), checkmarkCount, theme, fmt)}
               width={listWidth}
               height={HEADER_HEIGHT}
