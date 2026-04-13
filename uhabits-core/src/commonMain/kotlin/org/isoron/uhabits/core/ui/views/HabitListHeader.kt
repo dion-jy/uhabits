@@ -21,6 +21,7 @@ package org.isoron.uhabits.core.ui.views
 
 import org.isoron.platform.gui.Canvas
 import org.isoron.platform.gui.Font
+import org.isoron.platform.gui.TextAlign
 import org.isoron.platform.gui.View
 import org.isoron.platform.time.LocalDate
 import org.isoron.platform.time.LocalDateFormatter
@@ -38,26 +39,22 @@ class HabitListHeader(
         val width = canvas.getWidth()
         val height = canvas.getHeight()
         val buttonSize = theme.checkmarkButtonSize
-        canvas.setColor(theme.headerBackgroundColor)
-        canvas.fillRect(0.0, 0.0, width, height)
-
-        canvas.setColor(theme.headerBorderColor)
-        canvas.setStrokeWidth(0.5)
-        canvas.drawLine(0.0, height - 0.5, width, height - 0.5)
-
         canvas.setColor(theme.headerTextColor)
         canvas.setFont(Font.BOLD)
         canvas.setFontSize(theme.smallTextSize)
+        canvas.setTextAlign(TextAlign.CENTER)
+
+        val em = canvas.measureText("m")
 
         repeat(nButtons) { index ->
             val date = today.minus(nButtons - index - 1)
             val name = fmt.shortWeekdayName(date).uppercase()
             val number = date.day.toString()
 
-            val x = width - (index + 1) * buttonSize + buttonSize / 2
+            val x = width - 3.0 - (index + 1) * buttonSize + buttonSize / 2
             val y = height / 2
-            canvas.drawText(name, x, y - theme.smallTextSize * 0.6)
-            canvas.drawText(number, x, y + theme.smallTextSize * 0.6)
+            canvas.drawText(name, x, y - 0.25 * em)
+            canvas.drawText(number, x, y + 1.25 * em)
         }
     }
 }

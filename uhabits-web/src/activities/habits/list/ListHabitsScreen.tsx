@@ -25,7 +25,7 @@ import {
 import styles from "./ListHabitsScreen.module.css";
 
 const fmt = new JsLocalDateFormatter();
-const HEADER_HEIGHT = 40;
+const HEADER_HEIGHT = 48;
 
 export function ListHabitsScreen() {
   const app = useAppContainer();
