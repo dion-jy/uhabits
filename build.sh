@@ -134,11 +134,18 @@ core_assemble() {
     gradle_run :uhabits-core:assemble || fail
 }
 
-core_check() {
+core_check_jvm() {
     log_info "Formatting code..."
     gradle_run ktlintFormat || fail
-    log_info "Checking uhabits-core..."
-    gradle_run :uhabits-core:check || fail
+    log_info "Checking uhabits-core (JVM)..."
+    gradle_run :uhabits-core:jvmTest || fail
+}
+
+core_check_js() {
+    log_info "Formatting code..."
+    gradle_run ktlintFormat || fail
+    log_info "Checking uhabits-core (JS)..."
+    gradle_run :uhabits-core:jsTest || fail
 }
 
 # Web
@@ -406,7 +413,8 @@ CI/CD script for Loop Habit Tracker.
 
 Usage:
     build.sh assemble [options]
-    build.sh check [options]
+    build.sh check-jvm [options]
+    build.sh check-js [options]
     build.sh android-accept-licenses
     build.sh android-setup <API>
     build.sh android-tests <API> [options]
@@ -415,7 +423,8 @@ Usage:
 
 Commands:
     assemble                Compile and package core, web, and android
-    check                   Format code, run tests, and lint
+    check-jvm               Format code and run JVM tests
+    check-js                Format code and run JS tests
     android-accept-licenses Accept all Android SDK licenses
     android-setup           Create Android virtual machine
     android-tests           Run medium and large Android tests on an emulator
@@ -458,10 +467,15 @@ main() {
             web_build
             android_build
             ;;
-        check)
+        check-jvm)
             shift; _parse_opts "$@"
             if [ -n "$CLEAN" ]; then clean; fi
-            core_check
+            core_check_jvm
+            ;;
+        check-js)
+            shift; _parse_opts "$@"
+            if [ -n "$CLEAN" ]; then clean; fi
+            core_check_js
             ;;
         android-accept-licenses)
             android_accept_licenses
