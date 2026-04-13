@@ -26,7 +26,7 @@ import org.hamcrest.MatcherAssert.assertThat
 import org.isoron.platform.time.LocalDate
 import org.isoron.uhabits.BaseViewTest
 import org.isoron.uhabits.core.models.NumericalHabitType
-import org.isoron.uhabits.utils.PaletteUtils
+import org.isoron.uhabits.core.models.PaletteColor
 import org.junit.After
 import org.junit.Before
 import org.junit.Test
@@ -54,7 +54,7 @@ class NumberPanelViewTest : BaseViewTest() {
         view = component.getNumberPanelViewFactory().create().apply {
             values = checkmarks
             buttonCount = 4
-            color = PaletteUtils.getAndroidTestColor(7)
+            color = PaletteColor(7)
             units = "steps"
             targetType = NumericalHabitType.AT_LEAST
             threshold = 5000.0

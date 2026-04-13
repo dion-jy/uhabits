@@ -126,6 +126,8 @@ class AndroidCanvas : Canvas {
             Font.REGULAR -> Typeface.DEFAULT
             Font.BOLD -> Typeface.DEFAULT_BOLD
             Font.FONT_AWESOME -> getFontAwesome(context)
+            Font.BOLD_CONDENSED -> Typeface.create("sans-serif-condensed", Typeface.BOLD)
+            Font.CONDENSED -> Typeface.create("sans-serif-condensed", Typeface.NORMAL)
         }
         updateMHeight()
     }

@@ -27,7 +27,7 @@ import android.util.AttributeSet
 import android.view.View
 import android.view.ViewGroup
 import org.isoron.uhabits.R
-import org.isoron.uhabits.activities.habits.list.views.toShortString
+import org.isoron.uhabits.core.ui.views.toShortString
 import org.isoron.uhabits.utils.InterfaceUtils.dpToPixels
 import org.isoron.uhabits.utils.InterfaceUtils.getDimension
 import org.isoron.uhabits.utils.StyledResources

@@ -24,8 +24,9 @@ import androidx.test.filters.MediumTest
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.MatcherAssert.assertThat
 import org.isoron.uhabits.BaseViewTest
-import org.isoron.uhabits.core.models.NumericalHabitType
-import org.isoron.uhabits.utils.PaletteUtils
+import org.isoron.uhabits.core.ui.views.LightTheme
+import org.isoron.uhabits.core.ui.views.NumberButtonState
+import org.isoron.uhabits.core.ui.views.toShortString
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -38,14 +39,22 @@ class NumberButtonViewTest : BaseViewTest() {
     private lateinit var view: NumberButtonView
     var edited = false
 
+    private val theme = LightTheme()
+
     @Before
     override fun setUp() {
         super.setUp()
         view = component.getNumberButtonViewFactory().create().apply {
-            units = "steps"
-            targetType = NumericalHabitType.AT_LEAST
-            threshold = 100.0
-            color = PaletteUtils.getAndroidTestColor(8)
+            state = NumberButtonState(
+                value = 0.0,
+                color = theme.color(8),
+                threshold = 100.0,
+                targetType = 0,
+                units = "steps",
+                theme = theme,
+                showQuestionMark = false,
+                notes = ""
+            )
             onEdit = { edited = true }
         }
         measureView(view, dpToPixels(48), dpToPixels(48))
@@ -71,47 +80,43 @@ class NumberButtonViewTest : BaseViewTest() {
 
     @Test
     fun testRender_aboveThreshold() {
-        view.value = 500.0
+        view.state = view.state.copy(value = 500.0)
         assertRenders(view, "$PATH/render_above.png")
     }
 
     @Test
     fun testRender_atMostAboveThreshold() {
-        view.value = 500.0
-        view.targetType = NumericalHabitType.AT_MOST
+        view.state = view.state.copy(value = 500.0, targetType = 1)
         assertRenders(view, "$PATH/render_at_most_above.png")
     }
 
     @Test
     fun testRender_belowThreshold() {
-        view.value = 99.0
+        view.state = view.state.copy(value = 99.0)
         assertRenders(view, "$PATH/render_below.png")
     }
 
     @Test
     fun testRender_atMostBetweenThresholds() {
-        view.value = 110.0
-        view.targetType = NumericalHabitType.AT_MOST
+        view.state = view.state.copy(value = 110.0, targetType = 1)
         assertRenders(view, "$PATH/render_at_most_between.png")
     }
 
     @Test
     fun testRender_zero() {
-        view.value = 0.0
+        view.state = view.state.copy(value = 0.0)
         assertRenders(view, "$PATH/render_zero.png")
     }
 
     @Test
     fun testRender_atMostBelowThreshold() {
-        view.value = 0.0
-        view.targetType = NumericalHabitType.AT_MOST
+        view.state = view.state.copy(value = 0.0, targetType = 1)
         assertRenders(view, "$PATH/render_at_most_below.png")
     }
 
     @Test
     fun testRender_emptyUnits() {
-        view.value = 500.0
-        view.units = ""
+        view.state = view.state.copy(value = 500.0, units = "")
         assertRenders(view, "$PATH/render_unitless.png")
     }
 

@@ -163,8 +163,8 @@ class JavaCanvas(
     private fun updateFont() {
         val size = (fontSize * pixelScale).toFloat()
         g2d.font = when (font) {
-            Font.REGULAR -> NOTO_REGULAR_FONT.deriveFont(size)
-            Font.BOLD -> NOTO_BOLD_FONT.deriveFont(size)
+            Font.REGULAR, Font.CONDENSED -> NOTO_REGULAR_FONT.deriveFont(size)
+            Font.BOLD, Font.BOLD_CONDENSED -> NOTO_BOLD_FONT.deriveFont(size)
             Font.FONT_AWESOME -> FONT_AWESOME_FONT.deriveFont(size)
         }
     }

@@ -284,7 +284,8 @@ class HabitCardView(
             }
         }
         numberPanel.apply {
-            color = c
+            color = h.color
+            isArchived = h.isArchived
             units = h.unit
             targetType = h.targetType
             threshold = h.targetValue

@@ -24,8 +24,11 @@ import me.tatarka.inject.annotations.Inject
 import org.isoron.platform.time.LocalDate
 import org.isoron.platform.time.getToday
 import org.isoron.uhabits.core.models.NumericalHabitType
+import org.isoron.uhabits.core.models.PaletteColor
 import org.isoron.uhabits.core.preferences.Preferences
+import org.isoron.uhabits.core.ui.views.NumberButtonState
 import org.isoron.uhabits.inject.ActivityContext
+import org.isoron.uhabits.utils.currentTheme
 
 @Inject
 class NumberPanelViewFactory(
@@ -60,7 +63,13 @@ class NumberPanelView(
             setupButtons()
         }
 
-    var color = 0
+    var color: PaletteColor = PaletteColor(0)
+        set(value) {
+            field = value
+            setupButtons()
+        }
+
+    var isArchived: Boolean = false
         set(value) {
             field = value
             setupButtons()
@@ -89,21 +98,27 @@ class NumberPanelView(
     @Synchronized
     override fun setupButtons() {
         val today = getToday()
+        val theme = currentTheme()
+        val actualColor = if (isArchived) {
+            theme.mediumContrastTextColor
+        } else {
+            theme.color(color.paletteIndex)
+        }
 
         buttons.forEachIndexed { index, button ->
             val date = today.minus(index + dataOffset)
-            button.value = when {
-                index + dataOffset < values.size -> values[index + dataOffset]
-                else -> 0.0
-            }
-            button.notes = when {
-                index + dataOffset < notes.size -> notes[index + dataOffset]
-                else -> ""
-            }
-            button.color = color
-            button.targetType = targetType
-            button.threshold = threshold
-            button.units = units
+            val offset = index + dataOffset
+
+            button.state = NumberButtonState(
+                value = if (offset < values.size) values[offset] else 0.0,
+                color = actualColor,
+                threshold = threshold,
+                targetType = targetType.value,
+                units = units,
+                theme = theme,
+                showQuestionMark = preferences.areQuestionMarksEnabled,
+                notes = if (offset < notes.size) notes[offset] else ""
+            )
             button.onEdit = { onEdit(date) }
         }
     }

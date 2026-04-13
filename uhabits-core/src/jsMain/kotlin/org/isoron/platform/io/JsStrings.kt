@@ -14,3 +14,9 @@ actual fun format(format: String, arg: Int): String =
 
 actual fun format(format: String, arg: Double): String =
     SprintfJs.sprintf(format, arg)
+
+actual fun formatLocaleDecimal(value: Double, maxFractionDigits: Int): String {
+    val opts = js("{}")
+    opts.maximumFractionDigits = maxFractionDigits
+    return value.asDynamic().toLocaleString(js("undefined"), opts) as String
+}

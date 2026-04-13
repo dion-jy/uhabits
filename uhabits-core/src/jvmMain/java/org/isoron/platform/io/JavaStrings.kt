@@ -27,3 +27,12 @@ actual fun format(format: String, arg: Int): String =
 
 actual fun format(format: String, arg: Double): String =
     String.format(format, arg)
+
+actual fun formatLocaleDecimal(value: Double, maxFractionDigits: Int): String {
+    val pattern = if (maxFractionDigits == 0) {
+        "#"
+    } else {
+        "#." + "#".repeat(maxFractionDigits)
+    }
+    return java.text.DecimalFormat(pattern).format(value)
+}

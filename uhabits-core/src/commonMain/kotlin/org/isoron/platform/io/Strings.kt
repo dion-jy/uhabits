@@ -22,6 +22,7 @@ package org.isoron.platform.io
 expect fun format(format: String, arg: String): String
 expect fun format(format: String, arg: Int): String
 expect fun format(format: String, arg: Double): String
+expect fun formatLocaleDecimal(value: Double, maxFractionDigits: Int): String
 
 fun parseCsvLine(line: String): List<String> {
     val result = mutableListOf<String>()

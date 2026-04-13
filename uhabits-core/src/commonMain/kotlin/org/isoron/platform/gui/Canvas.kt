@@ -30,7 +30,9 @@ enum class TextStyle {
 enum class Font {
     REGULAR,
     BOLD,
-    FONT_AWESOME
+    FONT_AWESOME,
+    BOLD_CONDENSED,
+    CONDENSED
 }
 
 data class ScreenLocation(
