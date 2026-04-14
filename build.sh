@@ -22,7 +22,7 @@ ANDROID_OUTPUTS_DIR="uhabits-android/build/outputs"
 AVDMANAGER="${ANDROID_HOME}/cmdline-tools/latest/bin/avdmanager"
 AVD_PREFIX="uhabitsTest"
 EMULATOR="${ANDROID_HOME}/emulator/emulator"
-GRADLE="./gradlew --stacktrace --quiet --console=plain"
+GRADLE="./gradlew --stacktrace --console=plain"
 GRADLE_LOG="build/gradle-output.log"
 PACKAGE_NAME=org.isoron.uhabits
 SDKMANAGER="${ANDROID_HOME}/cmdline-tools/latest/bin/sdkmanager"
@@ -119,7 +119,7 @@ gradle_run() {
     mkdir -p build
     if ! $GRADLE "$@" > "$GRADLE_LOG" 2>&1; then
         log_error "Gradle command failed: $*"
-        grep -E "^e:|^w:|^FAILURE|^> " "$GRADLE_LOG" | head -40
+        grep -E "^e:|^w:|FAILED$|^FAILURE|^> (There were|Run with)" "$GRADLE_LOG" | grep -v "^> Task"
         log_error "Full log: $GRADLE_LOG"
         return 1
     fi

@@ -57,6 +57,8 @@ actual suspend fun ensureFontsLoaded() {
     fontsLoaded = true
 }
 
+actual fun cleanupFailedDir() {}
+
 private suspend fun loadFontAsync(fontSpec: String) {
     suspendCoroutine<Unit> { cont ->
         val promise = document.asDynamic().fonts.load(fontSpec)

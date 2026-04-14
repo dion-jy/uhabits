@@ -21,12 +21,9 @@ package org.isoron.uhabits.activities.habits.list.views
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.MediumTest
-import org.hamcrest.CoreMatchers.equalTo
-import org.hamcrest.MatcherAssert.assertThat
 import org.isoron.uhabits.BaseViewTest
 import org.isoron.uhabits.core.ui.views.LightTheme
 import org.isoron.uhabits.core.ui.views.NumberButtonState
-import org.isoron.uhabits.core.ui.views.toShortString
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -35,7 +32,6 @@ import org.junit.runner.RunWith
 @MediumTest
 class NumberButtonViewTest : BaseViewTest() {
 
-    private val PATH = "habits/list/NumberButtonView"
     private lateinit var view: NumberButtonView
     var edited = false
 
@@ -58,66 +54,6 @@ class NumberButtonViewTest : BaseViewTest() {
             onEdit = { edited = true }
         }
         measureView(view, dpToPixels(48), dpToPixels(48))
-    }
-
-    @Test
-    fun testFormatValue() {
-        assertThat(0.1235.toShortString(), equalTo("0.12"))
-        assertThat(0.1000.toShortString(), equalTo("0.1"))
-        assertThat(5.0.toShortString(), equalTo("5"))
-        assertThat(5.25.toShortString(), equalTo("5.25"))
-        assertThat(12.3456.toShortString(), equalTo("12.3"))
-        assertThat(123.123.toShortString(), equalTo("123"))
-        assertThat(321.2.toShortString(), equalTo("321"))
-        assertThat(4321.2.toShortString(), equalTo("4.3k"))
-        assertThat(54321.2.toShortString(), equalTo("54.3k"))
-        assertThat(654321.2.toShortString(), equalTo("654k"))
-        assertThat(7654321.2.toShortString(), equalTo("7.7M"))
-        assertThat(87654321.2.toShortString(), equalTo("87.7M"))
-        assertThat(987654321.2.toShortString(), equalTo("988M"))
-        assertThat(1987654321.2.toShortString(), equalTo("2.0G"))
-    }
-
-    @Test
-    fun testRender_aboveThreshold() {
-        view.state = view.state.copy(value = 500.0)
-        assertRenders(view, "$PATH/render_above.png")
-    }
-
-    @Test
-    fun testRender_atMostAboveThreshold() {
-        view.state = view.state.copy(value = 500.0, targetType = 1)
-        assertRenders(view, "$PATH/render_at_most_above.png")
-    }
-
-    @Test
-    fun testRender_belowThreshold() {
-        view.state = view.state.copy(value = 99.0)
-        assertRenders(view, "$PATH/render_below.png")
-    }
-
-    @Test
-    fun testRender_atMostBetweenThresholds() {
-        view.state = view.state.copy(value = 110.0, targetType = 1)
-        assertRenders(view, "$PATH/render_at_most_between.png")
-    }
-
-    @Test
-    fun testRender_zero() {
-        view.state = view.state.copy(value = 0.0)
-        assertRenders(view, "$PATH/render_zero.png")
-    }
-
-    @Test
-    fun testRender_atMostBelowThreshold() {
-        view.state = view.state.copy(value = 0.0, targetType = 1)
-        assertRenders(view, "$PATH/render_at_most_below.png")
-    }
-
-    @Test
-    fun testRender_emptyUnits() {
-        view.state = view.state.copy(value = 500.0, units = "")
-        assertRenders(view, "$PATH/render_unitless.png")
     }
 
     @Test

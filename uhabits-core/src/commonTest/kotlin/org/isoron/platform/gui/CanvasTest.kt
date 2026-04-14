@@ -13,4 +13,12 @@ class CanvasTest {
         canvas.drawTestImage()
         assertRenders("views/CanvasTest.png", canvas)
     }
+
+    @Test
+    fun testDrawTestImage2() = runTest {
+        ensureFontsLoaded()
+        val canvas = createTestCanvas(500, 640)
+        canvas.drawTestImage2()
+        assertRenders("views/CanvasTest2.png", canvas)
+    }
 }

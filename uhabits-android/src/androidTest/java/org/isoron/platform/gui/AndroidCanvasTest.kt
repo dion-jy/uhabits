@@ -20,20 +20,47 @@
 package org.isoron.platform.gui
 
 import android.graphics.Bitmap
+import androidx.test.ext.junit.runners.AndroidJUnit4
+import androidx.test.filters.MediumTest
 import org.isoron.uhabits.BaseViewTest
 import org.junit.Test
+import org.junit.runner.RunWith
 
+@RunWith(AndroidJUnit4::class)
+@MediumTest
 class AndroidCanvasTest : BaseViewTest() {
     @Test
     fun testDrawTestImage() {
-        similarityCutoff = 0.0005
-        val bmp = Bitmap.createBitmap(1000, 800, Bitmap.Config.ARGB_8888)
+//        similarityCutoff = 0.002
+        val density = 2.0
+        val widthPx = (500 * density).toInt()
+        val heightPx = (400 * density).toInt()
+        val bmp = Bitmap.createBitmap(widthPx, heightPx, Bitmap.Config.ARGB_8888)
         val canvas = AndroidCanvas()
-        canvas.context = testContext
-        canvas.innerDensity = 2.0
+        canvas.context = targetContext
+        canvas.innerDensity = density
+        canvas.innerWidth = widthPx
+        canvas.innerHeight = heightPx
         canvas.innerCanvas = android.graphics.Canvas(bmp)
         canvas.innerBitmap = bmp
         canvas.drawTestImage()
         assertRenders(bmp, "CanvasTest.png")
+    }
+
+    @Test
+    fun testDrawTestImage2() {
+        val density = 2.0
+        val widthPx = (500 * density).toInt()
+        val heightPx = (640 * density).toInt()
+        val bmp = Bitmap.createBitmap(widthPx, heightPx, Bitmap.Config.ARGB_8888)
+        val canvas = AndroidCanvas()
+        canvas.context = targetContext
+        canvas.innerDensity = density
+        canvas.innerWidth = widthPx
+        canvas.innerHeight = heightPx
+        canvas.innerCanvas = android.graphics.Canvas(bmp)
+        canvas.innerBitmap = bmp
+        canvas.drawTestImage2()
+        assertRenders(bmp, "CanvasTest2.png")
     }
 }

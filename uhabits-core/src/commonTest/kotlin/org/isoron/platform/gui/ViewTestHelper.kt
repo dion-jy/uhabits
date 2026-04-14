@@ -1,14 +1,21 @@
 package org.isoron.platform.gui
 
+import org.isoron.platform.io.cleanupFailedDir
 import org.isoron.platform.io.createTestCanvas
 import org.isoron.platform.io.createTestFileOpener
 import org.isoron.platform.io.ensureFontsLoaded
 import kotlin.test.fail
 
+private var failedDirCleaned = false
+
 suspend fun assertRenders(
     path: String,
     canvas: Canvas
 ) {
+    if (!failedDirCleaned) {
+        cleanupFailedDir()
+        failedDirCleaned = true
+    }
     val actualImage = canvas.toImage()
     val failedActualPath = "/tmp/failed/$path"
     val failedExpectedPath = failedActualPath.replace(".png", ".expected.png")

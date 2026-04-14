@@ -48,7 +48,7 @@ abstract class HabitsActivityTestComponent(
 ) {
     abstract fun getCheckmarkPanelViewFactory(): CheckmarkPanelViewFactory
     abstract fun getHabitCardViewFactory(): HabitCardViewFactory
-    abstract fun getEntryButtonViewFactory(): CheckmarkButtonViewFactory
+    abstract fun getCheckmarkButtonViewFactory(): CheckmarkButtonViewFactory
     abstract fun getNumberButtonViewFactory(): NumberButtonViewFactory
     abstract fun getNumberPanelViewFactory(): NumberPanelViewFactory
 

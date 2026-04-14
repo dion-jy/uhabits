@@ -72,6 +72,97 @@ interface Canvas {
         fillRect(0.0, 0.0, getWidth(), getHeight())
     }
 
+    fun drawTestImage2() {
+        // White background
+        setColor(Color(0xFFFFFF))
+        fill()
+
+        setStrokeWidth(1.0)
+        setTextAlign(TextAlign.LEFT)
+
+        var y = 0.0
+        val fonts = listOf(
+            Font.REGULAR to "Regular",
+            Font.BOLD to "Bold",
+            Font.BOLD_CONDENSED to "BoldCondensed",
+            Font.CONDENSED to "Condensed",
+        )
+
+        for ((font, label) in fonts) {
+            // Section label
+            setFont(Font.REGULAR)
+            setFontSize(10.0)
+            setColor(Color(0x909090))
+            setTextAlign(TextAlign.LEFT)
+            drawText(label, 10.0, y + 15.0)
+
+            // Sample text at different sizes
+            setFont(font)
+            setColor(Color(0x303030))
+
+            setFontSize(12.0)
+            drawText("Abc 123 hello", 10.0, y + 35.0)
+
+            setFontSize(18.0)
+            drawText("Abc 123 hello", 10.0, y + 58.0)
+
+            setFontSize(24.0)
+            drawText("Abc 123 hello", 10.0, y + 85.0)
+
+            setFontSize(36.0)
+            drawText("Abc 123", 280.0, y + 60.0)
+
+            // Separator line
+            setColor(Color(0xE0E0E0))
+            drawLine(10.0, y + 100.0, 490.0, y + 100.0)
+
+            y += 105.0
+        }
+
+        // FontAwesome section
+        setFont(Font.REGULAR)
+        setFontSize(10.0)
+        setColor(Color(0x909090))
+        setTextAlign(TextAlign.LEFT)
+        drawText("FontAwesome", 10.0, y + 15.0)
+
+        setFont(Font.FONT_AWESOME)
+        setColor(Color(0x303030))
+
+        setFontSize(16.0)
+        drawText("${FontAwesome.CHECK} ${FontAwesome.TIMES} ${FontAwesome.SKIP} ${FontAwesome.QUESTION}", 10.0, y + 40.0)
+
+        setFontSize(24.0)
+        drawText("${FontAwesome.CHECK} ${FontAwesome.TIMES} ${FontAwesome.SKIP} ${FontAwesome.QUESTION}", 10.0, y + 70.0)
+
+        setFontSize(36.0)
+        drawText("${FontAwesome.CHECK} ${FontAwesome.TIMES} ${FontAwesome.SKIP} ${FontAwesome.QUESTION}", 250.0, y + 60.0)
+
+        // Text alignment section
+        y += 105.0
+        setFont(Font.REGULAR)
+        setFontSize(10.0)
+        setColor(Color(0x909090))
+        setTextAlign(TextAlign.LEFT)
+        drawText("Alignment", 10.0, y + 15.0)
+
+        setColor(Color(0xE0E0E0))
+        drawLine(250.0, y + 20.0, 250.0, y + 95.0)
+
+        setFont(Font.BOLD)
+        setFontSize(20.0)
+        setColor(Color(0x303030))
+
+        setTextAlign(TextAlign.LEFT)
+        drawText("Left aligned", 250.0, y + 40.0)
+
+        setTextAlign(TextAlign.CENTER)
+        drawText("Center aligned", 250.0, y + 65.0)
+
+        setTextAlign(TextAlign.RIGHT)
+        drawText("Right aligned", 250.0, y + 90.0)
+    }
+
     fun drawTestImage() {
         // Draw transparent background
         setColor(Color(0.1, 0.1, 0.1, 0.5))

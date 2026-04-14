@@ -48,6 +48,9 @@ android {
         getByName("main") {
             assets.srcDirs("src/main/assets", "../uhabits-core/assets/main")
         }
+        getByName("androidTest") {
+            assets.srcDirs("src/androidTest/assets", "../uhabits-core/assets/test")
+        }
     }
 
     defaultConfig {

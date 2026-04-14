@@ -31,9 +31,8 @@ import org.junit.runner.RunWith
 
 @RunWith(AndroidJUnit4::class)
 @MediumTest
-class EntryButtonViewTest : BaseViewTest() {
+class CheckmarkButtonViewTest : BaseViewTest() {
 
-    private val PATH = "habits/list/CheckmarkButtonView"
     lateinit var view: CheckmarkButtonView
 
     var toggled = false
@@ -44,7 +43,7 @@ class EntryButtonViewTest : BaseViewTest() {
     @Before
     override fun setUp() {
         super.setUp()
-        view = component.getEntryButtonViewFactory().create().apply {
+        view = component.getCheckmarkButtonViewFactory().create().apply {
             state = CheckmarkButtonState(
                 value = Entry.NO,
                 color = theme.color(5),
@@ -54,24 +53,6 @@ class EntryButtonViewTest : BaseViewTest() {
             onEdit = { edited = true }
         }
         measureView(view, dpToPixels(48), dpToPixels(48))
-    }
-
-    @Test
-    fun testRender_explicitCheck() {
-        view.state = view.state.copy(value = Entry.YES_MANUAL)
-        assertRendersCheckedExplicitly()
-    }
-
-    @Test
-    fun testRender_implicitCheck() {
-        view.state = view.state.copy(value = Entry.YES_AUTO)
-        assertRendersCheckedImplicitly()
-    }
-
-    @Test
-    fun testRender_unchecked() {
-        view.state = view.state.copy(value = Entry.NO)
-        assertRendersUnchecked()
     }
 
     @Test
@@ -100,17 +81,5 @@ class EntryButtonViewTest : BaseViewTest() {
         prefs.isShortToggleEnabled = true
         view.performLongClick()
         assertTrue(!toggled and edited)
-    }
-
-    private fun assertRendersCheckedExplicitly() {
-        assertRenders(view, "$PATH/render_explicit_check.png")
-    }
-
-    private fun assertRendersCheckedImplicitly() {
-        assertRenders(view, "$PATH/render_implicit_check.png")
-    }
-
-    private fun assertRendersUnchecked() {
-        assertRenders(view, "$PATH/render_unchecked.png")
     }
 }

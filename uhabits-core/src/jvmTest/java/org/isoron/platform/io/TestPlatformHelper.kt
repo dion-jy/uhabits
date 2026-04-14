@@ -21,3 +21,8 @@ actual fun createTestDateFormatter(): LocalDateFormatter {
 }
 
 actual suspend fun ensureFontsLoaded() {}
+
+actual fun cleanupFailedDir() {
+    val dir = java.io.File("/tmp/failed")
+    if (dir.exists()) dir.deleteRecursively()
+}
