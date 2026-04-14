@@ -60,8 +60,10 @@ class JavaCanvas(
     val heightPx = image.height
     val g2d: Graphics2D = image.createGraphics()
 
-    private val NOTO_REGULAR_FONT = createFont("fonts/NotoSans-Regular.ttf")
-    private val NOTO_BOLD_FONT = createFont("fonts/NotoSans-Bold.ttf")
+    private val ROBOTO_REGULAR_FONT = createFont("fonts/Roboto-Regular.ttf")
+    private val ROBOTO_BOLD_FONT = createFont("fonts/Roboto-Bold.ttf")
+    private val ROBOTO_CONDENSED_FONT = createFont("fonts/Roboto-Condensed.ttf")
+    private val ROBOTO_CONDENSED_BOLD_FONT = createFont("fonts/Roboto-CondensedBold.ttf")
     private val FONT_AWESOME_FONT = createFont("fonts/FontAwesome.ttf")
 
     init {
@@ -163,8 +165,10 @@ class JavaCanvas(
     private fun updateFont() {
         val size = (fontSize * pixelScale).toFloat()
         g2d.font = when (font) {
-            Font.REGULAR, Font.CONDENSED -> NOTO_REGULAR_FONT.deriveFont(size)
-            Font.BOLD, Font.BOLD_CONDENSED -> NOTO_BOLD_FONT.deriveFont(size)
+            Font.REGULAR -> ROBOTO_REGULAR_FONT.deriveFont(size)
+            Font.BOLD -> ROBOTO_BOLD_FONT.deriveFont(size)
+            Font.CONDENSED -> ROBOTO_CONDENSED_FONT.deriveFont(size)
+            Font.BOLD_CONDENSED -> ROBOTO_CONDENSED_BOLD_FONT.deriveFont(size)
             Font.FONT_AWESOME -> FONT_AWESOME_FONT.deriveFont(size)
         }
     }

@@ -164,8 +164,10 @@ class JsCanvas(
     private fun updateFont() {
         val sizePx = (fontSize * pixelScale).roundToInt()
         val family = when (font) {
-            Font.REGULAR, Font.CONDENSED -> "NotoSans"
-            Font.BOLD, Font.BOLD_CONDENSED -> "NotoSansBold"
+            Font.REGULAR -> "Roboto"
+            Font.BOLD -> "RobotoBold"
+            Font.CONDENSED -> "RobotoCondensed"
+            Font.BOLD_CONDENSED -> "RobotoCondensedBold"
             Font.FONT_AWESOME -> "FontAwesome"
         }
         val weight = if (font == Font.BOLD || font == Font.BOLD_CONDENSED) "bold" else "normal"

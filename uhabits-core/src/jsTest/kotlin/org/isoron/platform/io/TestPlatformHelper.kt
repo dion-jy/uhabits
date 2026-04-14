@@ -46,13 +46,17 @@ actual suspend fun ensureFontsLoaded() {
     if (fontsLoaded) return
     val style = document.createElement("style")
     style.textContent = buildString {
-        appendLine("@font-face { font-family: 'NotoSans'; src: url('/fonts/NotoSans-Regular.ttf') format('truetype'); }")
-        appendLine("@font-face { font-family: 'NotoSansBold'; src: url('/fonts/NotoSans-Bold.ttf') format('truetype'); }")
+        appendLine("@font-face { font-family: 'Roboto'; src: url('/fonts/Roboto-Regular.ttf') format('truetype'); }")
+        appendLine("@font-face { font-family: 'RobotoBold'; src: url('/fonts/Roboto-Bold.ttf') format('truetype'); }")
+        appendLine("@font-face { font-family: 'RobotoCondensed'; src: url('/fonts/Roboto-Condensed.ttf') format('truetype'); }")
+        appendLine("@font-face { font-family: 'RobotoCondensedBold'; src: url('/fonts/Roboto-CondensedBold.ttf') format('truetype'); }")
         appendLine("@font-face { font-family: 'FontAwesome'; src: url('/fonts/FontAwesome.ttf') format('truetype'); }")
     }
     document.head?.appendChild(style)
-    loadFontAsync("12px NotoSans")
-    loadFontAsync("bold 12px NotoSansBold")
+    loadFontAsync("12px Roboto")
+    loadFontAsync("bold 12px RobotoBold")
+    loadFontAsync("12px RobotoCondensed")
+    loadFontAsync("bold 12px RobotoCondensedBold")
     loadFontAsync("12px FontAwesome")
     fontsLoaded = true
 }

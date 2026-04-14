@@ -85,7 +85,7 @@ interface Canvas {
             Font.REGULAR to "Regular",
             Font.BOLD to "Bold",
             Font.BOLD_CONDENSED to "BoldCondensed",
-            Font.CONDENSED to "Condensed",
+            Font.CONDENSED to "Condensed"
         )
 
         for ((font, label) in fonts) {
