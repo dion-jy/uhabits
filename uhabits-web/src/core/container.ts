@@ -101,7 +101,8 @@ function randomize(habit: InstanceType<typeof Habit>) {
       const raw = target * (0.5 + nextGaussian() * 0.3) * strength / 50;
       value = Math.round(Math.max(0, raw) * 1000);
     }
-    habit.originalEntries.add(new Entry(today.minus(i), value));
+    const notes = Math.random() < 0.05 ? "Feeling great today!" : "";
+    habit.originalEntries.add(new Entry(today.minus(i), value, notes));
   }
 }
 
