@@ -84,7 +84,7 @@ class SupabaseSyncService(
                     is EditHabitCommand -> {
                         val habit = habitList.getById(command.habitId)
                         if (habit != null) {
-                            supabaseClient.upsertHabits(listOf(habit))
+                            supabaseClient.upsertHabit(habit)
                         }
                     }
                     else -> syncAllHabits()

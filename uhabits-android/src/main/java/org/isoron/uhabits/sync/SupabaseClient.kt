@@ -119,6 +119,8 @@ class SupabaseClient(
         "archived" to if (habit.isArchived) 1 else 0
     )
 
+    suspend fun upsertHabit(habit: Habit) = upsertHabits(listOf(habit))
+
     suspend fun upsertHabits(habits: List<Habit>) {
         if (habits.isEmpty()) return
         try {
