@@ -217,5 +217,6 @@ data class CoachingMessage(
     val habit_uuid: String? = null,
     val message: String = "",
     val type: String = "nudge",
-    val created_at: String = ""
+    val created_at: String = "",
+    val metadata: Map<String, Any>? = null
 )
