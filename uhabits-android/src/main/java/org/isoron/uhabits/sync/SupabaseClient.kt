@@ -45,8 +45,8 @@ class SupabaseClient(
 ) {
     companion object {
         private const val TAG = "SupabaseClient"
-        const val SUPABASE_URL = "https://YOUR_PROJECT.supabase.co"
-        const val SUPABASE_ANON_KEY = "YOUR_ANON_KEY"
+        const val SUPABASE_URL = "https://vzhkkxqwqtqajnutpjmt.supabase.co"
+        const val SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ6aGtreHF3cXRxYWpudXRwam10Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg4NTI2MjUsImV4cCI6MjA5NDQyODYyNX0.rRW-MGdghQk2yyPlwmBeCLvgZqIt9IApgVSg-PjSouE"
     }
 
     private val mapper = ObjectMapper().apply {
