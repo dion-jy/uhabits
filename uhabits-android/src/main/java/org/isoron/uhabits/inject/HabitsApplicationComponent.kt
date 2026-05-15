@@ -51,6 +51,8 @@ import org.isoron.uhabits.io.AndroidLogging
 import org.isoron.uhabits.notifications.AndroidNotificationTray
 import org.isoron.uhabits.preferences.SharedPreferencesStorage
 import org.isoron.uhabits.receivers.ReminderController
+import org.isoron.uhabits.sync.CoachingPullService
+import org.isoron.uhabits.sync.SupabaseSyncService
 import org.isoron.uhabits.utils.DatabaseUtils
 import org.isoron.uhabits.widgets.WidgetUpdater
 import java.io.File
@@ -82,6 +84,8 @@ abstract class HabitsApplicationComponent(
     abstract val taskRunner: TaskRunner
     abstract val widgetPreferences: WidgetPreferences
     abstract val widgetUpdater: WidgetUpdater
+    abstract val supabaseSyncService: SupabaseSyncService
+    abstract val coachingPullService: CoachingPullService
 
     val db: AndroidDatabase
         get() = providedDb

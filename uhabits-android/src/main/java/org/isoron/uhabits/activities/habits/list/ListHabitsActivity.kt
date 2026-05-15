@@ -45,6 +45,8 @@ import org.isoron.uhabits.inject.HabitsActivityComponent
 import org.isoron.uhabits.inject.HabitsApplicationComponent
 import org.isoron.uhabits.inject.create
 import org.isoron.uhabits.utils.applyRootViewInsets
+import org.isoron.uhabits.sync.CoachingPullService
+import org.isoron.uhabits.sync.SupabaseSyncService
 import org.isoron.uhabits.utils.dismissCurrentDialog
 import org.isoron.uhabits.utils.restartWithFade
 
@@ -59,6 +61,8 @@ class ListHabitsActivity : AppCompatActivity(), Preferences.Listener {
     lateinit var screen: ListHabitsScreen
     lateinit var prefs: Preferences
     lateinit var midnightTimer: MidnightTimer
+    private lateinit var supabaseSyncService: SupabaseSyncService
+    private lateinit var coachingPullService: CoachingPullService
     private val scope = CoroutineScope(Dispatchers.Main)
 
     private var permissionAlreadyRequested = false
@@ -97,6 +101,8 @@ class ListHabitsActivity : AppCompatActivity(), Preferences.Listener {
         adapter = component.habitCardListAdapter
         taskRunner = appComponent.taskRunner
         menu = component.listHabitsMenu
+        supabaseSyncService = appComponent.supabaseSyncService
+        coachingPullService = appComponent.coachingPullService
         Thread.setDefaultUncaughtExceptionHandler(BaseExceptionHandler(this))
         component.listHabitsBehavior.onStartup()
         rootView.applyRootViewInsets()
@@ -147,6 +153,8 @@ class ListHabitsActivity : AppCompatActivity(), Preferences.Listener {
         if (prefs.theme == THEME_DARK && prefs.isPureBlackEnabled != pureBlack) {
             restartWithFade(ListHabitsActivity::class.java)
         }
+        supabaseSyncService.fullSync()
+        coachingPullService.pullAndNotify()
         parseIntents()
         super.onResume()
     }

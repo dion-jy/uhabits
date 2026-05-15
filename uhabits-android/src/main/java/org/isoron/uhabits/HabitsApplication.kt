@@ -27,6 +27,7 @@ import org.isoron.uhabits.core.database.UnsupportedDatabaseVersionException
 import org.isoron.uhabits.core.reminders.ReminderScheduler
 import org.isoron.uhabits.core.ui.NotificationTray
 import org.isoron.uhabits.inject.HabitsApplicationComponent
+import org.isoron.uhabits.sync.SupabaseSyncService
 import org.isoron.uhabits.inject.create
 import org.isoron.uhabits.utils.DatabaseUtils
 import org.isoron.uhabits.widgets.WidgetUpdater
@@ -41,6 +42,7 @@ class HabitsApplication : Application() {
     private lateinit var widgetUpdater: WidgetUpdater
     private lateinit var reminderScheduler: ReminderScheduler
     private lateinit var notificationTray: NotificationTray
+    private lateinit var supabaseSyncService: SupabaseSyncService
 
     override fun onCreate() {
         super.onCreate()
@@ -84,6 +86,9 @@ class HabitsApplication : Application() {
         notificationTray = component.notificationTray
         notificationTray.startListening()
 
+        supabaseSyncService = component.supabaseSyncService
+        supabaseSyncService.startListening()
+
         val taskRunner = component.taskRunner
         taskRunner.execute {
             reminderScheduler.scheduleAll()
@@ -92,6 +97,7 @@ class HabitsApplication : Application() {
     }
 
     override fun onTerminate() {
+        supabaseSyncService.stopListening()
         reminderScheduler.stopListening()
         widgetUpdater.stopListening()
         notificationTray.stopListening()
