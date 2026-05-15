@@ -29,6 +29,7 @@ import org.isoron.uhabits.core.AppScope
 import org.isoron.uhabits.core.commands.Command
 import org.isoron.uhabits.core.commands.CommandRunner
 import org.isoron.uhabits.core.commands.CreateRepetitionCommand
+import org.isoron.uhabits.core.commands.DeleteHabitsCommand
 import org.isoron.uhabits.core.commands.EditHabitCommand
 import org.isoron.uhabits.core.models.Habit
 import org.isoron.uhabits.core.models.HabitList
@@ -75,6 +76,10 @@ class SupabaseSyncService(
                                 notes = command.notes
                             )
                         }
+                    }
+                    is DeleteHabitsCommand -> {
+                        val ids = command.selected.mapNotNull { it.id }
+                        supabaseClient.deleteHabits(ids)
                     }
                     is EditHabitCommand -> {
                         val habit = habitList.getById(command.habitId)

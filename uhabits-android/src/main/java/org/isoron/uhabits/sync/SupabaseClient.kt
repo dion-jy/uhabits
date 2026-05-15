@@ -26,6 +26,7 @@ import io.ktor.client.HttpClient
 import io.ktor.client.engine.android.Android
 import io.ktor.client.features.json.JacksonSerializer
 import io.ktor.client.features.json.JsonFeature
+import io.ktor.client.request.delete
 import io.ktor.client.request.get
 import io.ktor.client.request.header
 import io.ktor.client.request.post
@@ -174,6 +175,26 @@ class SupabaseClient(
         } catch (e: Exception) {
             Log.w(TAG, "Failed to fetch coaching", e)
             emptyList()
+        }
+    }
+
+    suspend fun deleteHabits(habitIds: List<Long>) {
+        if (habitIds.isEmpty()) return
+        try {
+            val idFilter = habitIds.joinToString(",")
+            client.delete<HttpResponse>("$restUrl/habits?id=in.($idFilter)") {
+                header("apikey", SUPABASE_ANON_KEY)
+                header("Authorization", "Bearer $SUPABASE_ANON_KEY")
+                header("x-device-id", deviceId)
+            }
+            client.delete<HttpResponse>("$restUrl/entries?habit_id=in.($idFilter)") {
+                header("apikey", SUPABASE_ANON_KEY)
+                header("Authorization", "Bearer $SUPABASE_ANON_KEY")
+                header("x-device-id", deviceId)
+            }
+            Log.d(TAG, "Deleted ${habitIds.size} habits + entries from Supabase")
+        } catch (e: Exception) {
+            Log.w(TAG, "Failed to delete habits", e)
         }
     }
 
