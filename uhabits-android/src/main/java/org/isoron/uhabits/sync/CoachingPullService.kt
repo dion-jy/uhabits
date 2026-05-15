@@ -22,7 +22,6 @@ package org.isoron.uhabits.sync
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.Context
-import android.os.Build
 import android.util.Log
 import androidx.core.app.NotificationCompat
 import kotlinx.coroutines.CoroutineScope
@@ -43,28 +42,21 @@ class CoachingPullService(
     companion object {
         private const val TAG = "CoachingPullService"
         private const val CHANNEL_ID = "coaching"
-        private const val CHANNEL_NAME = "AI Coaching"
         private const val NOTIFICATION_BASE_ID = 90000
     }
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+    private val notificationManager =
+        context.getSystemService(NotificationManager::class.java)
 
     init {
-        createNotificationChannel()
-    }
-
-    private fun createNotificationChannel() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val channel = NotificationChannel(
+        notificationManager.createNotificationChannel(
+            NotificationChannel(
                 CHANNEL_ID,
-                CHANNEL_NAME,
+                "AI Coaching",
                 NotificationManager.IMPORTANCE_DEFAULT
-            ).apply {
-                description = "Coaching messages from your AI habit coach"
-            }
-            val manager = context.getSystemService(NotificationManager::class.java)
-            manager.createNotificationChannel(channel)
-        }
+            )
+        )
     }
 
     fun pullAndNotify() {
@@ -72,22 +64,16 @@ class CoachingPullService(
         scope.launch {
             try {
                 val messages = supabaseClient.fetchUnreadCoaching()
-                if (messages.isEmpty()) {
-                    Log.d(TAG, "No unread coaching messages")
-                    return@launch
-                }
+                if (messages.isEmpty()) return@launch
 
-                Log.d(TAG, "Received ${messages.size} coaching messages")
                 val readIds = mutableListOf<Long>()
-
                 messages.forEachIndexed { index, msg ->
                     showNotification(msg, index)
                     readIds.add(msg.id)
                 }
-
                 supabaseClient.markCoachingRead(readIds)
             } catch (e: Exception) {
-                Log.w(TAG, "Failed to pull coaching messages", e)
+                Log.w(TAG, "Failed to pull coaching", e)
             }
         }
     }
@@ -99,22 +85,13 @@ class CoachingPullService(
             "nudge" -> "Habit Reminder"
             else -> "Coaching"
         }
-
-        val icon = when (message.type) {
-            "celebration" -> R.drawable.ic_action_check
-            else -> R.drawable.ic_action_check
-        }
-
         val notification = NotificationCompat.Builder(context, CHANNEL_ID)
-            .setSmallIcon(icon)
+            .setSmallIcon(R.drawable.ic_action_check)
             .setContentTitle(title)
             .setContentText(message.message)
             .setStyle(NotificationCompat.BigTextStyle().bigText(message.message))
-            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
             .setAutoCancel(true)
             .build()
-
-        val manager = context.getSystemService(NotificationManager::class.java)
-        manager.notify(NOTIFICATION_BASE_ID + index, notification)
+        notificationManager.notify(NOTIFICATION_BASE_ID + index, notification)
     }
 }

@@ -26,15 +26,11 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 import me.tatarka.inject.annotations.Inject
 import org.isoron.uhabits.core.AppScope
-import org.isoron.uhabits.core.commands.ArchiveHabitsCommand
-import org.isoron.uhabits.core.commands.ChangeHabitColorCommand
 import org.isoron.uhabits.core.commands.Command
 import org.isoron.uhabits.core.commands.CommandRunner
-import org.isoron.uhabits.core.commands.CreateHabitCommand
 import org.isoron.uhabits.core.commands.CreateRepetitionCommand
-import org.isoron.uhabits.core.commands.DeleteHabitsCommand
 import org.isoron.uhabits.core.commands.EditHabitCommand
-import org.isoron.uhabits.core.commands.UnarchiveHabitsCommand
+import org.isoron.uhabits.core.models.Habit
 import org.isoron.uhabits.core.models.HabitList
 
 @Inject
@@ -53,75 +49,43 @@ class SupabaseSyncService(
     private var isListening = false
 
     fun startListening() {
-        if (!supabaseClient.isConfigured) {
-            Log.d(TAG, "Supabase not configured, skipping sync")
-            return
-        }
+        if (!supabaseClient.isConfigured) return
         if (isListening) return
         isListening = true
         commandRunner.addListener(this)
-        Log.d(TAG, "Started listening for commands")
     }
 
     fun stopListening() {
         if (!isListening) return
         isListening = false
         commandRunner.removeListener(this)
-        Log.d(TAG, "Stopped listening for commands")
     }
 
     override fun onCommandFinished(command: Command) {
         scope.launch {
             try {
-                syncCommand(command)
+                when (command) {
+                    is CreateRepetitionCommand -> {
+                        val habit = command.habit
+                        if (habit.id != null) {
+                            supabaseClient.upsertEntry(
+                                habitId = habit.id!!,
+                                timestamp = command.date.unixTime,
+                                value = command.value,
+                                notes = command.notes
+                            )
+                        }
+                    }
+                    is EditHabitCommand -> {
+                        val habit = habitList.getById(command.habitId)
+                        if (habit != null) {
+                            supabaseClient.upsertHabits(listOf(habit))
+                        }
+                    }
+                    else -> syncAllHabits()
+                }
             } catch (e: Exception) {
-                Log.w(TAG, "Sync failed for command: ${command::class.simpleName}", e)
-            }
-        }
-    }
-
-    private suspend fun syncCommand(command: Command) {
-        when (command) {
-            is CreateRepetitionCommand -> {
-                val habit = command.habit
-                if (habit.id != null) {
-                    supabaseClient.upsertEntry(
-                        habitId = habit.id!!,
-                        timestamp = command.date.unixTime,
-                        value = command.value,
-                        notes = command.notes
-                    )
-                    supabaseClient.upsertHabit(habit)
-                }
-            }
-
-            is CreateHabitCommand -> {
-                // After run(), model may not have id yet; sync all to be safe
-                syncAllHabits()
-            }
-
-            is EditHabitCommand -> {
-                val habit = habitList.getById(command.habitId)
-                if (habit != null) {
-                    supabaseClient.upsertHabit(habit)
-                }
-            }
-
-            is ArchiveHabitsCommand -> {
-                syncAllHabits()
-            }
-
-            is UnarchiveHabitsCommand -> {
-                syncAllHabits()
-            }
-
-            is ChangeHabitColorCommand -> {
-                syncAllHabits()
-            }
-
-            is DeleteHabitsCommand -> {
-                // Full sync to reflect deletions
-                syncAllHabits()
+                Log.w(TAG, "Sync failed: ${command::class.simpleName}", e)
             }
         }
     }
@@ -132,7 +96,6 @@ class SupabaseSyncService(
             try {
                 syncAllHabits()
                 syncRecentEntries()
-                Log.d(TAG, "Full sync completed")
             } catch (e: Exception) {
                 Log.w(TAG, "Full sync failed", e)
             }
@@ -140,10 +103,7 @@ class SupabaseSyncService(
     }
 
     private suspend fun syncAllHabits() {
-        val habits = mutableListOf<org.isoron.uhabits.core.models.Habit>()
-        for (h in habitList) {
-            habits.add(h)
-        }
+        val habits = habitList.toList()
         supabaseClient.upsertHabits(habits)
     }
 
@@ -151,10 +111,7 @@ class SupabaseSyncService(
         val entries = mutableListOf<Map<String, Any?>>()
         for (habit in habitList) {
             val habitId = habit.id ?: continue
-            val known = habit.originalEntries.getKnown()
-            // Sync last 90 days of entries
-            val recentEntries = known.take(90)
-            for (entry in recentEntries) {
+            for (entry in habit.originalEntries.getKnown().take(90)) {
                 entries.add(
                     mapOf(
                         "habit_id" to habitId,
@@ -165,9 +122,12 @@ class SupabaseSyncService(
                 )
             }
         }
-        // Batch in chunks of 100
-        entries.chunked(100).forEach { chunk ->
-            supabaseClient.upsertEntries(chunk)
-        }
+        entries.chunked(100).forEach { supabaseClient.upsertEntries(it) }
+    }
+
+    private fun HabitList.toList(): List<Habit> {
+        val result = mutableListOf<Habit>()
+        for (h in this) result.add(h)
+        return result
     }
 }
