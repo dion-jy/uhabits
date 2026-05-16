@@ -44,10 +44,12 @@ class SupabaseSyncService(
 
     companion object {
         private const val TAG = "SupabaseSyncService"
+        private const val FULL_SYNC_INTERVAL_MS = 15 * 60 * 1000L // 15 minutes
     }
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private var isListening = false
+    private var lastFullSyncMs = 0L
 
     fun startListening() {
         if (!supabaseClient.isConfigured) return
@@ -97,6 +99,9 @@ class SupabaseSyncService(
 
     fun fullSync() {
         if (!supabaseClient.isConfigured) return
+        val now = System.currentTimeMillis()
+        if (now - lastFullSyncMs < FULL_SYNC_INTERVAL_MS) return
+        lastFullSyncMs = now
         scope.launch {
             try {
                 syncAllHabits()

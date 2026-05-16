@@ -101,6 +101,14 @@ class SupabaseClient(
         }
     }
 
+    private suspend fun restDelete(path: String): HttpResponse {
+        return client.delete("$restUrl/$path") {
+            header("apikey", SUPABASE_ANON_KEY)
+            header("Authorization", "Bearer $SUPABASE_ANON_KEY")
+            header("x-device-id", deviceId)
+        }
+    }
+
     private fun habitToMap(habit: Habit): Map<String, Any?> = mapOf(
         "id" to habit.id,
         "uuid" to habit.uuid,
@@ -184,17 +192,8 @@ class SupabaseClient(
         if (habitIds.isEmpty()) return
         try {
             val idFilter = habitIds.joinToString(",")
-            client.delete<HttpResponse>("$restUrl/habits?id=in.($idFilter)") {
-                header("apikey", SUPABASE_ANON_KEY)
-                header("Authorization", "Bearer $SUPABASE_ANON_KEY")
-                header("x-device-id", deviceId)
-            }
-            client.delete<HttpResponse>("$restUrl/entries?habit_id=in.($idFilter)") {
-                header("apikey", SUPABASE_ANON_KEY)
-                header("Authorization", "Bearer $SUPABASE_ANON_KEY")
-                header("x-device-id", deviceId)
-            }
-            Log.d(TAG, "Deleted ${habitIds.size} habits + entries from Supabase")
+            restDelete("habits?id=in.($idFilter)")
+            restDelete("entries?habit_id=in.($idFilter)")
         } catch (e: Exception) {
             Log.w(TAG, "Failed to delete habits", e)
         }
