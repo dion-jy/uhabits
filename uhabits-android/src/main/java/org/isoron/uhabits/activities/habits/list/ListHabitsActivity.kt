@@ -28,6 +28,7 @@ import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import androidx.activity.result.contract.ActivityResultContracts.RequestPermission
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat.checkSelfPermission
 import kotlinx.coroutines.CoroutineScope
@@ -45,6 +46,7 @@ import org.isoron.uhabits.inject.HabitsActivityComponent
 import org.isoron.uhabits.inject.HabitsApplicationComponent
 import org.isoron.uhabits.inject.create
 import org.isoron.uhabits.utils.applyRootViewInsets
+import org.isoron.uhabits.sync.BackupDetector
 import org.isoron.uhabits.utils.dismissCurrentDialog
 import org.isoron.uhabits.utils.restartWithFade
 
@@ -101,6 +103,7 @@ class ListHabitsActivity : AppCompatActivity(), Preferences.Listener {
         component.listHabitsBehavior.onStartup()
         rootView.applyRootViewInsets()
         setContentView(rootView)
+        checkForExistingBackup()
     }
 
     override fun onPause() {
@@ -190,6 +193,20 @@ class ListHabitsActivity : AppCompatActivity(), Preferences.Listener {
     override fun onNewIntent(intent: Intent?) {
         super.onNewIntent(intent)
         setIntent(intent)
+    }
+
+    private fun checkForExistingBackup() {
+        if (!prefs.isFirstRun) return
+        val backup = BackupDetector.findLatestBackup(this) ?: return
+        val sizeMb = backup.length() / (1024 * 1024)
+        AlertDialog.Builder(this)
+            .setTitle("Existing data found")
+            .setMessage("Found backup: ${backup.name} (${sizeMb}MB).\nRestore your habits from this backup?")
+            .setPositiveButton("Restore") { _, _ ->
+                screen.importFromFile(backup)
+            }
+            .setNegativeButton("Skip", null)
+            .show()
     }
 
     companion object {

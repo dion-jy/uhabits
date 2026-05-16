@@ -191,6 +191,10 @@ class ListHabitsScreen(
         activity.startActivity(intent)
     }
 
+    fun importFromFile(file: java.io.File) {
+        onImportData(JavaUserFile(file.toPath())) {}
+    }
+
     fun showImportScreen() {
         val intent = intentFactory.openDocument()
         activity.startActivityForResult(intent, REQUEST_OPEN_DOCUMENT)
