@@ -89,7 +89,7 @@ class HabitsApplication : Application() {
 
         try {
             supabaseSyncService = component.supabaseSyncService
-            supabaseSyncService.startListening()
+            supabaseSyncService?.startListening()
         } catch (e: Exception) {
             Log.e("HabitsApplication", "Failed to start sync service", e)
         }
