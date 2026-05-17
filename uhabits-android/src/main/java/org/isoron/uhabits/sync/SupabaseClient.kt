@@ -22,20 +22,14 @@ package org.isoron.uhabits.sync
 import android.util.Log
 import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.ObjectMapper
-import io.ktor.client.HttpClient
-import io.ktor.client.engine.android.Android
-import io.ktor.client.features.json.JacksonSerializer
-import io.ktor.client.features.json.JsonFeature
-import io.ktor.client.request.delete
-import io.ktor.client.request.get
-import io.ktor.client.request.header
-import io.ktor.client.request.post
-import io.ktor.client.statement.HttpResponse
-import io.ktor.http.ContentType
-import io.ktor.http.contentType
 import me.tatarka.inject.annotations.Inject
 import org.isoron.uhabits.core.AppScope
 import org.isoron.uhabits.core.models.Habit
+import java.io.BufferedReader
+import java.io.InputStreamReader
+import java.io.OutputStreamWriter
+import java.net.HttpURLConnection
+import java.net.URL
 import java.time.Instant
 
 @Inject
@@ -53,16 +47,6 @@ class SupabaseClient(
         configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
     }
 
-    private val client = HttpClient(Android) {
-        install(JsonFeature) {
-            serializer = JacksonSerializer()
-        }
-        engine {
-            connectTimeout = 10_000
-            socketTimeout = 15_000
-        }
-    }
-
     val isConfigured: Boolean
         get() = SUPABASE_URL != "https://YOUR_PROJECT.supabase.co"
 
@@ -72,41 +56,59 @@ class SupabaseClient(
     private val restUrl: String
         get() = "$SUPABASE_URL/rest/v1"
 
-    private suspend fun restPost(
-        table: String,
-        body: Any,
-        upsert: Boolean = false
-    ): HttpResponse {
-        return client.post("$restUrl/$table") {
-            header("apikey", SUPABASE_ANON_KEY)
-            header("Authorization", "Bearer $SUPABASE_ANON_KEY")
-            header("x-device-id", deviceId)
-            if (upsert) header("Prefer", "resolution=merge-duplicates")
-            contentType(ContentType.Application.Json)
-            this.body = body
-        }
+    private fun openConnection(url: String, method: String): HttpURLConnection {
+        val conn = URL(url).openConnection() as HttpURLConnection
+        conn.setRequestProperty("apikey", SUPABASE_ANON_KEY)
+        conn.setRequestProperty("Authorization", "Bearer $SUPABASE_ANON_KEY")
+        conn.setRequestProperty("x-device-id", deviceId)
+        conn.connectTimeout = 10_000
+        conn.readTimeout = 15_000
+        conn.requestMethod = method
+        return conn
     }
 
-    private suspend fun restPatch(
-        path: String,
-        body: Any
-    ): HttpResponse {
-        return client.post("$restUrl/$path") {
-            header("apikey", SUPABASE_ANON_KEY)
-            header("Authorization", "Bearer $SUPABASE_ANON_KEY")
-            header("x-device-id", deviceId)
-            header("X-HTTP-Method-Override", "PATCH")
-            contentType(ContentType.Application.Json)
-            this.body = body
+    private fun restPost(table: String, body: Any, upsert: Boolean = false): String {
+        val conn = openConnection("$restUrl/$table", "POST")
+        conn.doOutput = true
+        conn.setRequestProperty("Content-Type", "application/json")
+        if (upsert) conn.setRequestProperty("Prefer", "resolution=merge-duplicates")
+        OutputStreamWriter(conn.outputStream).use { it.write(mapper.writeValueAsString(body)) }
+        val code = conn.responseCode
+        val response = if (code in 200..299) {
+            BufferedReader(InputStreamReader(conn.inputStream)).use { it.readText() }
+        } else {
+            val err = BufferedReader(InputStreamReader(conn.errorStream)).use { it.readText() }
+            Log.w(TAG, "POST $table returned $code: $err")
+            err
         }
+        conn.disconnect()
+        return response
     }
 
-    private suspend fun restDelete(path: String): HttpResponse {
-        return client.delete("$restUrl/$path") {
-            header("apikey", SUPABASE_ANON_KEY)
-            header("Authorization", "Bearer $SUPABASE_ANON_KEY")
-            header("x-device-id", deviceId)
-        }
+    private fun restPatch(path: String, body: Any): String {
+        val conn = openConnection("$restUrl/$path", "PATCH")
+        conn.doOutput = true
+        conn.setRequestProperty("Content-Type", "application/json")
+        OutputStreamWriter(conn.outputStream).use { it.write(mapper.writeValueAsString(body)) }
+        val code = conn.responseCode
+        val response = if (code in 200..299) {
+            BufferedReader(InputStreamReader(conn.inputStream)).use { it.readText() }
+        } else ""
+        conn.disconnect()
+        return response
+    }
+
+    private fun restDelete(path: String) {
+        val conn = openConnection("$restUrl/$path", "DELETE")
+        conn.responseCode
+        conn.disconnect()
+    }
+
+    private fun restGet(path: String): String {
+        val conn = openConnection("$restUrl/$path", "GET")
+        val response = BufferedReader(InputStreamReader(conn.inputStream)).use { it.readText() }
+        conn.disconnect()
+        return response
     }
 
     private fun habitToMap(habit: Habit): Map<String, Any?> = mapOf(
@@ -133,7 +135,6 @@ class SupabaseClient(
         if (habits.isEmpty()) return
         try {
             restPost("habits", habits.map(::habitToMap), upsert = true)
-            Log.d(TAG, "Upserted ${habits.size} habits")
         } catch (e: Exception) {
             Log.w(TAG, "Failed to upsert habits", e)
         }
@@ -141,14 +142,13 @@ class SupabaseClient(
 
     suspend fun upsertEntry(habitId: Long, timestamp: Long, value: Int, notes: String) {
         try {
-            val data = mapOf(
+            restPost("entries", mapOf(
                 "device_id" to deviceId,
                 "habit_id" to habitId,
                 "timestamp" to timestamp,
                 "value" to value,
                 "notes" to notes
-            )
-            restPost("entries", data, upsert = true)
+            ), upsert = true)
         } catch (e: Exception) {
             Log.w(TAG, "Failed to upsert entry", e)
         }
@@ -165,16 +165,7 @@ class SupabaseClient(
 
     suspend fun fetchUnreadCoaching(): List<CoachingMessage> {
         return try {
-            val response: String = client.get("$restUrl/coaching") {
-                header("apikey", SUPABASE_ANON_KEY)
-                header("Authorization", "Bearer $SUPABASE_ANON_KEY")
-                header("x-device-id", deviceId)
-                url {
-                    parameters.append("read_at", "is.null")
-                    parameters.append("order", "created_at.desc")
-                    parameters.append("limit", "20")
-                }
-            }
+            val response = restGet("coaching?read_at=is.null&order=created_at.desc&limit=20")
             mapper.readValue(
                 response,
                 mapper.typeFactory.constructCollectionType(
