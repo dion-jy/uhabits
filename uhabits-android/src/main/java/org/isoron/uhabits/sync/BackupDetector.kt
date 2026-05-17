@@ -20,32 +20,46 @@
 package org.isoron.uhabits.sync
 
 import android.content.Context
+import android.os.Environment
 import androidx.core.content.ContextCompat
 import java.io.File
 
 /**
  * Detects existing Loop Habit Tracker backup files on the device.
- * Used on first launch to prompt the user to restore existing data.
+ * Searches both the original app's backup path and our own.
  */
 object BackupDetector {
 
     private val backupPattern = Regex("^Loop Habits Backup .+\\.db$")
+    private const val ORIGINAL_PACKAGE = "org.isoron.uhabits"
 
     /**
      * Finds the most recent backup .db file in known backup locations.
+     * Checks: 1) original Loop app's external files, 2) our own external files.
      * Returns null if no backup found.
      */
     fun findLatestBackup(context: Context): File? {
-        val dirs = ContextCompat.getExternalFilesDirs(context, null)
-        for (baseDir in dirs) {
-            if (baseDir == null) continue
-            val backupDir = File(baseDir, "Backups")
-            if (!backupDir.exists()) continue
-            val latest = backupDir.listFiles()
-                ?.filter { it.name.matches(backupPattern) }
-                ?.maxByOrNull { it.lastModified() }
-            if (latest != null) return latest
+        val candidates = mutableListOf<File>()
+
+        // Our own backup dir
+        val ownDirs = ContextCompat.getExternalFilesDirs(context, null)
+        for (dir in ownDirs) {
+            if (dir == null) continue
+            findBackupsIn(File(dir, "Backups"), candidates)
         }
-        return null
+
+        // Original Loop app's backup dir (Android/data/org.isoron.uhabits/files/Backups)
+        val extStorage = Environment.getExternalStorageDirectory()
+        val originalDir = File(extStorage, "Android/data/$ORIGINAL_PACKAGE/files/Backups")
+        findBackupsIn(originalDir, candidates)
+
+        return candidates.maxByOrNull { it.lastModified() }
+    }
+
+    private fun findBackupsIn(dir: File, out: MutableList<File>) {
+        if (!dir.exists()) return
+        dir.listFiles()
+            ?.filter { it.name.matches(backupPattern) }
+            ?.let { out.addAll(it) }
     }
 }

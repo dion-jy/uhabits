@@ -53,7 +53,7 @@ data class Habit(
         get() = type == HabitType.NUMERICAL
 
     val uriString: String
-        get() = "content://org.isoron.uhabits/habit/$id"
+        get() = "content://org.isoron.uhabits.loop/habit/$id"
 
     fun hasReminder(): Boolean = reminder != null
 
