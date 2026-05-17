@@ -47,7 +47,7 @@ jobs:
           profile: pixel_6
           script: |
             adb install uhabits-android/build/outputs/apk/debug/uhabits-android-debug.apk
-            adb shell am start -n org.isoron.uhabits.loop/.MainActivity
+            adb shell am start -n org.isoron.uhabits.loop/org.isoron.uhabits.MainActivity
             sleep 15
             echo "=== PROCESS CHECK ==="
             adb shell pidof org.isoron.uhabits.loop && echo "APP RUNNING OK" || echo "APP NOT RUNNING (CRASHED)"
