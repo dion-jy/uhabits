@@ -147,6 +147,46 @@ def cmd_summary(args):
         print(f"  {h['name']:<28} {last_7:>7} {last_30:>8} {streak:>7}")
 
 
+def cmd_check(args):
+    """Write an entry for a habit (agent -> app via Supabase)."""
+    device_id = args.device_id
+    habit_name = args.habit
+    value_str = args.value.upper()
+    date_str = args.date or datetime.now(timezone.utc).strftime("%Y-%m-%d")
+
+    val_map = {"YES": 2, "NO": 0, "SKIP": 3}
+    if value_str in val_map:
+        value = val_map[value_str]
+    else:
+        try:
+            value = int(value_str)
+        except ValueError:
+            print(f"Invalid value: {value_str}. Use YES/NO/SKIP or integer.")
+            return
+
+    # Resolve habit name to id
+    habits = _get(f"habits?device_id=eq.{device_id}&name=eq.{habit_name}&select=id")
+    if not habits:
+        print(f"Habit '{habit_name}' not found for device {device_id}")
+        return
+    habit_id = habits[0]["id"]
+
+    # Convert date to unix millis
+    dt = datetime.strptime(date_str, "%Y-%m-%d").replace(tzinfo=timezone.utc)
+    timestamp_ms = int(dt.timestamp() * 1000)
+
+    data = {
+        "device_id": device_id,
+        "habit_id": habit_id,
+        "timestamp": timestamp_ms,
+        "value": value,
+        "notes": args.notes or "",
+        "source": "agent",
+    }
+    result = _post("entries", data, {"Prefer": "return=representation,resolution=merge-duplicates"})
+    print(f"Checked '{habit_name}' = {value_str} on {date_str} (source=agent)")
+
+
 def main():
     parser = argparse.ArgumentParser(description="P18 HabitLoop agent client")
     sub = parser.add_subparsers(dest="command")
@@ -163,6 +203,13 @@ def main():
     p_coach.add_argument("--habit-uuid", default=None)
     p_coach.add_argument("--metadata", default=None, help="JSON string")
 
+    p_check = sub.add_parser("check", help="Check/uncheck a habit (agent -> app)")
+    p_check.add_argument("device_id")
+    p_check.add_argument("habit", help="Habit name")
+    p_check.add_argument("value", help="YES/NO/SKIP or integer for numerical")
+    p_check.add_argument("--date", default=None, help="YYYY-MM-DD (default: today)")
+    p_check.add_argument("--notes", default=None)
+
     sub.add_parser("summary", help="Per-habit streak summary")
 
     args = parser.parse_args()
@@ -170,7 +217,7 @@ def main():
         parser.print_help()
         return
 
-    {"habits": cmd_habits, "entries": cmd_entries, "coach": cmd_coach, "summary": cmd_summary}[
+    {"habits": cmd_habits, "entries": cmd_entries, "coach": cmd_coach, "summary": cmd_summary, "check": cmd_check}[
         args.command
     ](args)
 

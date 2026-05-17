@@ -31,6 +31,7 @@ CREATE TABLE entries (
     timestamp BIGINT NOT NULL,
     value INTEGER NOT NULL,
     notes TEXT DEFAULT '',
+    source TEXT DEFAULT 'app',
     synced_at TIMESTAMPTZ DEFAULT now(),
     UNIQUE (device_id, habit_id, timestamp)
 );
@@ -50,6 +51,7 @@ CREATE TABLE coaching (
 -- indexes
 CREATE INDEX idx_entries_device_habit ON entries (device_id, habit_id);
 CREATE INDEX idx_entries_timestamp ON entries (timestamp DESC);
+CREATE INDEX idx_entries_agent ON entries (device_id, source) WHERE source = 'agent';
 CREATE INDEX idx_coaching_unread ON coaching (device_id, read_at) WHERE read_at IS NULL;
 
 -- Row Level Security

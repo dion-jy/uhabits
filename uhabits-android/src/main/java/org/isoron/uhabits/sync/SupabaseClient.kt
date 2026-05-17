@@ -193,6 +193,32 @@ class SupabaseClient(
         }
     }
 
+    suspend fun fetchAgentEntries(): List<AgentEntry> {
+        return try {
+            val response = restGet("entries?source=eq.agent&order=synced_at.desc&limit=100")
+            mapper.readValue(
+                response,
+                mapper.typeFactory.constructCollectionType(
+                    List::class.java,
+                    AgentEntry::class.java
+                )
+            )
+        } catch (e: Exception) {
+            Log.w(TAG, "Failed to fetch agent entries", e)
+            emptyList()
+        }
+    }
+
+    suspend fun markEntriesPulled(ids: List<Long>) {
+        if (ids.isEmpty()) return
+        try {
+            val idFilter = ids.joinToString(",")
+            restPatch("entries?id=in.($idFilter)", mapOf("source" to "pulled"))
+        } catch (e: Exception) {
+            Log.w(TAG, "Failed to mark entries pulled", e)
+        }
+    }
+
     suspend fun markCoachingRead(ids: List<Long>) {
         if (ids.isEmpty()) return
         try {
@@ -206,6 +232,14 @@ class SupabaseClient(
         }
     }
 }
+
+data class AgentEntry(
+    val id: Long = 0,
+    val habit_id: Long = 0,
+    val timestamp: Long = 0,
+    val value: Int = 0,
+    val notes: String = ""
+)
 
 data class CoachingMessage(
     val id: Long = 0,

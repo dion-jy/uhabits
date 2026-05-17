@@ -26,11 +26,13 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 import me.tatarka.inject.annotations.Inject
 import org.isoron.uhabits.core.AppScope
+import org.isoron.platform.time.LocalDate
 import org.isoron.uhabits.core.commands.Command
 import org.isoron.uhabits.core.commands.CommandRunner
 import org.isoron.uhabits.core.commands.CreateRepetitionCommand
 import org.isoron.uhabits.core.commands.DeleteHabitsCommand
 import org.isoron.uhabits.core.commands.EditHabitCommand
+import org.isoron.uhabits.core.models.Entry
 import org.isoron.uhabits.core.models.Habit
 import org.isoron.uhabits.core.models.HabitList
 
@@ -50,6 +52,7 @@ class SupabaseSyncService(
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private var isListening = false
     private var lastFullSyncMs = 0L
+    @Volatile private var isPulling = false
 
     fun startListening() {
         if (!supabaseClient.isConfigured) {
@@ -69,6 +72,7 @@ class SupabaseSyncService(
     }
 
     override fun onCommandFinished(command: Command) {
+        if (isPulling) return
         Log.i(TAG, "Command: ${command::class.simpleName}")
         scope.launch {
             try {
@@ -112,6 +116,7 @@ class SupabaseSyncService(
             try {
                 syncAllHabits()
                 syncRecentEntries()
+                pullAgentEntries()
             } catch (e: Exception) {
                 Log.w(TAG, "Full sync failed", e)
             }
@@ -139,6 +144,26 @@ class SupabaseSyncService(
             }
         }
         entries.chunked(100).forEach { supabaseClient.upsertEntries(it) }
+    }
+
+    private suspend fun pullAgentEntries() {
+        val agentEntries = supabaseClient.fetchAgentEntries()
+        if (agentEntries.isEmpty()) return
+        Log.i(TAG, "Pulling ${agentEntries.size} agent entries")
+        isPulling = true
+        try {
+            for (entry in agentEntries) {
+                val habit = habitList.getById(entry.habit_id) ?: continue
+                val date = LocalDate.fromUnixTime(entry.timestamp)
+                habit.originalEntries.add(Entry(date, entry.value, entry.notes))
+                habit.recompute()
+            }
+            habitList.resort()
+            supabaseClient.markEntriesPulled(agentEntries.map { it.id })
+            Log.i(TAG, "Pulled ${agentEntries.size} agent entries")
+        } finally {
+            isPulling = false
+        }
     }
 
     private fun HabitList.toList(): List<Habit> {
