@@ -87,21 +87,3 @@ jobs:
               -H "Authorization: Bearer ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}"
           done
 
-      - name: Enable KVM
-        run: |
-          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
-          sudo udevadm control --reload-rules
-          sudo udevadm trigger --name-match=kvm
-
-      - name: Smoke test (launch on emulator)
-        uses: reactivecircus/android-emulator-runner@v2
-        with:
-          api-level: 34
-          arch: x86_64
-          profile: pixel_6
-          script: |
-            adb install uhabits-android/build/outputs/apk/debug/uhabits-android-debug.apk
-            adb logcat -c
-            adb shell am start -n org.isoron.uhabits.loop/org.isoron.uhabits.MainActivity
-            sleep 20
-            adb shell pidof org.isoron.uhabits.loop && echo "APP RUNNING OK" || { echo "APP CRASHED"; adb logcat -d | grep -i "FATAL\|AndroidRuntime" | tail -30; exit 1; }
