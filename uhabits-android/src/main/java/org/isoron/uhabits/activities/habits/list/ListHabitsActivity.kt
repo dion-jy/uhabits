@@ -46,7 +46,6 @@ import org.isoron.uhabits.inject.HabitsActivityComponent
 import org.isoron.uhabits.inject.HabitsApplicationComponent
 import org.isoron.uhabits.inject.create
 import org.isoron.uhabits.utils.applyRootViewInsets
-import org.isoron.uhabits.sync.BackupDetector
 import org.isoron.uhabits.utils.dismissCurrentDialog
 import org.isoron.uhabits.utils.restartWithFade
 
@@ -197,31 +196,15 @@ class ListHabitsActivity : AppCompatActivity(), Preferences.Listener {
 
     private fun checkForExistingBackup() {
         if (!prefs.isFirstRun) return
-        // Try auto-detect from backup folder first
-        val backup = BackupDetector.findLatestBackup(this)
-        if (backup != null) {
-            val sizeMb = backup.length() / (1024 * 1024)
-            AlertDialog.Builder(this)
-                .setTitle("Existing data found")
-                .setMessage("Found backup: ${backup.name} (${sizeMb}MB).\nRestore your habits from this backup?")
-                .setPositiveButton("Restore") { _, _ ->
-                    screen.importFromFile(backup)
-                }
-                .setNegativeButton("Skip", null)
-                .show()
-            return
-        }
-        // No auto-detect: if habit list is empty, offer to import
-        if (appComponent.habitList.size() == 0) {
-            AlertDialog.Builder(this)
-                .setTitle("Import from Loop Habit Tracker?")
-                .setMessage("Export your database from the original Loop app (Settings → Export database), then tap Import to select the file.")
-                .setPositiveButton("Import") { _, _ ->
-                    screen.showImportScreen()
-                }
-                .setNegativeButton("Start fresh", null)
-                .show()
-        }
+        if (appComponent.habitList.size() > 0) return
+        AlertDialog.Builder(this)
+            .setTitle("Import from Loop Habit Tracker?")
+            .setMessage("Export your database from the original Loop app (Settings → Export database), then tap Import to select the file.")
+            .setPositiveButton("Import") { _, _ ->
+                screen.showImportScreen()
+            }
+            .setNegativeButton("Start fresh", null)
+            .show()
     }
 
     companion object {
