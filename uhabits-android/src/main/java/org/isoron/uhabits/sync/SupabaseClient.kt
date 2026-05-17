@@ -72,13 +72,16 @@ class SupabaseClient(
         conn.doOutput = true
         conn.setRequestProperty("Content-Type", "application/json")
         if (upsert) conn.setRequestProperty("Prefer", "resolution=merge-duplicates")
-        OutputStreamWriter(conn.outputStream).use { it.write(mapper.writeValueAsString(body)) }
+        val json = mapper.writeValueAsString(body)
+        Log.d(TAG, "POST $table (upsert=$upsert)")
+        OutputStreamWriter(conn.outputStream).use { it.write(json) }
         val code = conn.responseCode
         val response = if (code in 200..299) {
+            Log.d(TAG, "POST $table OK ($code)")
             BufferedReader(InputStreamReader(conn.inputStream)).use { it.readText() }
         } else {
             val err = BufferedReader(InputStreamReader(conn.errorStream)).use { it.readText() }
-            Log.w(TAG, "POST $table returned $code: $err")
+            Log.w(TAG, "POST $table FAILED $code: $err")
             err
         }
         conn.disconnect()

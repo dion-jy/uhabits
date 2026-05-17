@@ -52,10 +52,14 @@ class SupabaseSyncService(
     private var lastFullSyncMs = 0L
 
     fun startListening() {
-        if (!supabaseClient.isConfigured) return
+        if (!supabaseClient.isConfigured) {
+            Log.w(TAG, "Supabase not configured, skipping")
+            return
+        }
         if (isListening) return
         isListening = true
         commandRunner.addListener(this)
+        Log.i(TAG, "Listening for commands")
     }
 
     fun stopListening() {
@@ -65,11 +69,13 @@ class SupabaseSyncService(
     }
 
     override fun onCommandFinished(command: Command) {
+        Log.i(TAG, "Command: ${command::class.simpleName}")
         scope.launch {
             try {
                 when (command) {
                     is CreateRepetitionCommand -> {
                         val habit = command.habit
+                        Log.i(TAG, "Syncing entry: habit=${habit.id} date=${command.date}")
                         if (habit.id != null) {
                             supabaseClient.upsertEntry(
                                 habitId = habit.id!!,
