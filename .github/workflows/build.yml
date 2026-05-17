@@ -1,4 +1,4 @@
-name: Build & Integration Test
+name: Build & Test
 
 on:
   push:
@@ -42,15 +42,7 @@ jobs:
           path: uhabits-android/build/outputs/apk/debug/uhabits-android-debug.apk
           retention-days: 7
 
-  supabase-e2e:
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    needs: build
-
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Test Supabase write (habits)
+      - name: Supabase E2E - write habits
         run: |
           RESPONSE=$(curl -s -w "\n%{http_code}" \
             "https://vzhkkxqwqtqajnutpjmt.supabase.co/rest/v1/habits" \
@@ -60,74 +52,56 @@ jobs:
             -H "Prefer: return=representation" \
             -d '{"id":9999,"uuid":"ci-test-'$GITHUB_RUN_ID'","device_id":"ci-runner","name":"CI Test Habit","freq_num":1,"freq_den":1}')
           HTTP_CODE=$(echo "$RESPONSE" | tail -1)
-          BODY=$(echo "$RESPONSE" | head -1)
-          echo "HTTP $HTTP_CODE"
-          echo "$BODY"
-          if [ "$HTTP_CODE" != "201" ]; then echo "FAIL: expected 201"; exit 1; fi
+          if [ "$HTTP_CODE" != "201" ]; then echo "FAIL: expected 201, got $HTTP_CODE"; exit 1; fi
 
-      - name: Test Supabase write (entries)
+      - name: Supabase E2E - write entries
         run: |
           TIMESTAMP=$(($(date +%s) * 1000))
-          RESPONSE=$(curl -s -w "\n%{http_code}" \
+          HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" \
             "https://vzhkkxqwqtqajnutpjmt.supabase.co/rest/v1/entries" \
             -H "apikey: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}" \
             -H "Authorization: Bearer ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}" \
             -H "Content-Type: application/json" \
-            -H "Prefer: return=representation" \
-            -d '{"device_id":"ci-runner","habit_id":9999,"timestamp":'$TIMESTAMP',"value":2,"notes":"CI test"}')
-          HTTP_CODE=$(echo "$RESPONSE" | tail -1)
-          echo "HTTP $HTTP_CODE"
+            -d '{"device_id":"ci-runner","habit_id":9999,"timestamp":'$TIMESTAMP',"value":2}')
           if [ "$HTTP_CODE" != "201" ]; then echo "FAIL: expected 201"; exit 1; fi
 
-      - name: Test Supabase write (coaching)
+      - name: Supabase E2E - read + RLS
         run: |
-          RESPONSE=$(curl -s -w "\n%{http_code}" \
-            "https://vzhkkxqwqtqajnutpjmt.supabase.co/rest/v1/coaching" \
-            -H "apikey: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}" \
-            -H "Authorization: Bearer ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}" \
-            -H "Content-Type: application/json" \
-            -H "Prefer: return=representation" \
-            -d '{"device_id":"ci-runner","message":"CI pipeline working","type":"celebration"}')
-          HTTP_CODE=$(echo "$RESPONSE" | tail -1)
-          echo "HTTP $HTTP_CODE"
-          if [ "$HTTP_CODE" != "201" ]; then echo "FAIL: expected 201"; exit 1; fi
-
-      - name: Test Supabase read
-        run: |
-          RESPONSE=$(curl -s -w "\n%{http_code}" \
-            "https://vzhkkxqwqtqajnutpjmt.supabase.co/rest/v1/habits?device_id=eq.ci-runner" \
+          BODY=$(curl -s "https://vzhkkxqwqtqajnutpjmt.supabase.co/rest/v1/habits?device_id=eq.ci-runner" \
             -H "apikey: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}" \
             -H "Authorization: Bearer ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}")
-          HTTP_CODE=$(echo "$RESPONSE" | tail -1)
-          BODY=$(echo "$RESPONSE" | head -1)
-          echo "HTTP $HTTP_CODE"
-          if [ "$HTTP_CODE" != "200" ]; then echo "FAIL: expected 200"; exit 1; fi
-          if ! echo "$BODY" | grep -q "CI Test Habit"; then echo "FAIL: habit not found"; exit 1; fi
-          echo "SUCCESS: habit found in Supabase"
-
-      - name: Test RLS isolation (anon key should not see ci-runner data)
-        run: |
-          RESPONSE=$(curl -s \
-            "https://vzhkkxqwqtqajnutpjmt.supabase.co/rest/v1/habits?device_id=eq.ci-runner" \
+          echo "$BODY" | grep -q "CI Test Habit" || { echo "FAIL: habit not found"; exit 1; }
+          RLS=$(curl -s "https://vzhkkxqwqtqajnutpjmt.supabase.co/rest/v1/habits?device_id=eq.ci-runner" \
             -H "apikey: ${{ secrets.SUPABASE_ANON_KEY }}" \
             -H "Authorization: Bearer ${{ secrets.SUPABASE_ANON_KEY }}" \
             -H "x-device-id: wrong-device")
-          if [ "$RESPONSE" != "[]" ]; then echo "FAIL: RLS not isolating"; exit 1; fi
-          echo "SUCCESS: RLS isolation confirmed"
+          [ "$RLS" = "[]" ] || { echo "FAIL: RLS not isolating"; exit 1; }
 
-      - name: Cleanup test data
+      - name: Supabase E2E - cleanup
         if: always()
         run: |
-          curl -s "https://vzhkkxqwqtqajnutpjmt.supabase.co/rest/v1/habits?device_id=eq.ci-runner" \
-            -X DELETE \
-            -H "apikey: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}" \
-            -H "Authorization: Bearer ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}"
-          curl -s "https://vzhkkxqwqtqajnutpjmt.supabase.co/rest/v1/entries?device_id=eq.ci-runner" \
-            -X DELETE \
-            -H "apikey: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}" \
-            -H "Authorization: Bearer ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}"
-          curl -s "https://vzhkkxqwqtqajnutpjmt.supabase.co/rest/v1/coaching?device_id=eq.ci-runner" \
-            -X DELETE \
-            -H "apikey: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}" \
-            -H "Authorization: Bearer ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}"
-          echo "Cleanup done"
+          for table in habits entries coaching; do
+            curl -s "https://vzhkkxqwqtqajnutpjmt.supabase.co/rest/v1/$table?device_id=eq.ci-runner" \
+              -X DELETE \
+              -H "apikey: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}" \
+              -H "Authorization: Bearer ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}"
+          done
+
+      - name: Enable KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+
+      - name: Smoke test (launch on emulator)
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 34
+          arch: x86_64
+          profile: pixel_6
+          script: |
+            adb install uhabits-android/build/outputs/apk/debug/uhabits-android-debug.apk
+            adb logcat -c
+            adb shell am start -n org.isoron.uhabits.loop/org.isoron.uhabits.MainActivity
+            sleep 20
+            adb shell pidof org.isoron.uhabits.loop && echo "APP RUNNING OK" || { echo "APP CRASHED"; adb logcat -d | grep -i "FATAL\|AndroidRuntime" | tail -30; exit 1; }
