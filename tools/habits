@@ -1,0 +1,253 @@
+#!/usr/bin/env python3
+"""
+P18 HabitLoop CLI — Agent interface for habit data.
+
+Usage:
+    habits list                          # list all habits
+    habits summary                       # streak & completion stats
+    habits entries [--days 7]            # recent entries
+    habits check <habit> YES [--date D]  # check a habit
+    habits check <habit> NO              # uncheck a habit
+    habits coach <message> [--type T]    # send coaching message
+"""
+
+import argparse
+import json
+import os
+import sys
+from datetime import datetime, timedelta, timezone
+from urllib.request import Request, urlopen
+from urllib.error import HTTPError
+
+SUPABASE_URL = os.environ.get(
+    "SUPABASE_URL",
+    "https://vzhkkxqwqtqajnutpjmt.supabase.co",
+)
+SUPABASE_KEY = os.environ.get(
+    "SUPABASE_SERVICE_ROLE_KEY",
+    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ6aGtreHF3cXRxYWpudXRwam10Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3ODg1MjYyNSwiZXhwIjoyMDk0NDI4NjI1fQ.S09LTGtR9DQV7sJZg9jhDb5zwTRBNts9xpv6olF1bwY",
+)
+REST = f"{SUPABASE_URL}/rest/v1"
+
+
+def _headers(extra=None):
+    h = {
+        "apikey": SUPABASE_KEY,
+        "Authorization": f"Bearer {SUPABASE_KEY}",
+        "Content-Type": "application/json",
+    }
+    if extra:
+        h.update(extra)
+    return h
+
+
+def _get(path):
+    req = Request(f"{REST}/{path}", headers=_headers())
+    with urlopen(req) as resp:
+        return json.loads(resp.read())
+
+
+def _post(path, data, extra_headers=None):
+    body = json.dumps(data).encode()
+    req = Request(f"{REST}/{path}", data=body, headers=_headers(extra_headers))
+    with urlopen(req) as resp:
+        return json.loads(resp.read())
+
+
+def _device_id():
+    """Auto-detect the most recently active device_id."""
+    habits = _get("habits?select=device_id,synced_at&order=synced_at.desc&limit=1")
+    if not habits:
+        print("No device found. Sync the app first.")
+        sys.exit(1)
+    return habits[0]["device_id"]
+
+
+def _resolve_habit(device_id, name):
+    """Find habit by name (case-insensitive partial match)."""
+    habits = _get(f"habits?device_id=eq.{device_id}&select=id,name")
+    # Exact match first
+    for h in habits:
+        if h["name"].lower() == name.lower():
+            return h
+    # Partial match
+    for h in habits:
+        if name.lower() in h["name"].lower():
+            return h
+    return None
+
+
+# --- Commands ---
+
+def cmd_list(args):
+    device_id = _device_id()
+    habits = _get(f"habits?device_id=eq.{device_id}&order=position.asc")
+    if not habits:
+        print("No habits.")
+        return
+    for h in habits:
+        status = " (archived)" if h["archived"] else ""
+        freq = f"{h['freq_num']}/{h['freq_den']}"
+        kind = "num" if h["type"] == 1 else "bool"
+        print(f"  {h['name']:<25} {kind:<5} {freq}{status}")
+
+
+def cmd_entries(args):
+    device_id = _device_id()
+    days = args.days
+    cutoff_ms = int((datetime.now(timezone.utc) - timedelta(days=days)).timestamp() * 1000)
+    entries = _get(f"entries?device_id=eq.{device_id}&timestamp=gte.{cutoff_ms}&order=timestamp.desc")
+    if not entries:
+        print(f"No entries in last {days} days.")
+        return
+    # Build habit name map
+    habits = _get(f"habits?device_id=eq.{device_id}&select=id,name")
+    name_map = {h["id"]: h["name"] for h in habits}
+    val_map = {2: "YES", 1: "AUTO", 0: "NO", 3: "SKIP"}
+    for e in entries:
+        dt = datetime.fromtimestamp(e["timestamp"] / 1000, tz=timezone.utc)
+        name = name_map.get(e["habit_id"], f"id={e['habit_id']}")
+        val = val_map.get(e["value"], str(e["value"]))
+        notes = f" — {e['notes']}" if e.get("notes") else ""
+        src = " [agent]" if e.get("source") == "agent" else ""
+        print(f"  {dt:%Y-%m-%d} {name:<20} {val}{notes}{src}")
+
+
+def cmd_summary(args):
+    device_id = _device_id()
+    habits = _get(f"habits?device_id=eq.{device_id}&order=position.asc")
+    if not habits:
+        print("No habits.")
+        return
+    cutoff_ms = int((datetime.now(timezone.utc) - timedelta(days=90)).timestamp() * 1000)
+    entries = _get(f"entries?device_id=eq.{device_id}&timestamp=gte.{cutoff_ms}&order=timestamp.desc")
+
+    by_habit = {}
+    for e in entries:
+        by_habit.setdefault(e["habit_id"], []).append(e)
+
+    now_ms = int(datetime.now(timezone.utc).timestamp() * 1000)
+    day_ms = 86400 * 1000
+
+    print(f"  {'Habit':<25} {'7d':>4} {'30d':>5} {'Streak':>7}")
+    print("  " + "-" * 44)
+
+    for h in habits:
+        if h["archived"]:
+            continue
+        es = by_habit.get(h["id"], [])
+        completed = [e for e in es if e["value"] in (1, 2)]
+        last_7 = sum(1 for e in completed if now_ms - e["timestamp"] < 7 * day_ms)
+        last_30 = sum(1 for e in completed if now_ms - e["timestamp"] < 30 * day_ms)
+
+        streak = 0
+        if completed:
+            day_set = {e["timestamp"] // day_ms for e in completed}
+            today_day = now_ms // day_ms
+            for i in range(90):
+                if (today_day - i) in day_set:
+                    streak += 1
+                else:
+                    break
+
+        print(f"  {h['name']:<25} {last_7:>4} {last_30:>5} {streak:>7}")
+
+
+def cmd_check(args):
+    device_id = _device_id()
+    value_str = args.value.upper()
+    date_str = args.date or datetime.now(timezone.utc).strftime("%Y-%m-%d")
+
+    val_map = {"YES": 2, "NO": 0, "SKIP": 3}
+    if value_str in val_map:
+        value = val_map[value_str]
+    else:
+        try:
+            value = int(value_str)
+        except ValueError:
+            print(f"Invalid value: {value_str}. Use YES/NO/SKIP or integer.")
+            return
+
+    habit = _resolve_habit(device_id, args.habit)
+    if not habit:
+        print(f"Habit '{args.habit}' not found.")
+        return
+
+    dt = datetime.strptime(date_str, "%Y-%m-%d").replace(tzinfo=timezone.utc)
+    timestamp_ms = int(dt.timestamp() * 1000)
+
+    _post(
+        "entries?on_conflict=device_id,habit_id,timestamp",
+        {
+            "device_id": device_id,
+            "habit_id": habit["id"],
+            "timestamp": timestamp_ms,
+            "value": value,
+            "notes": args.notes or "",
+            "source": "agent",
+        },
+        {"Prefer": "return=representation,resolution=merge-duplicates"},
+    )
+    print(f"  {habit['name']} = {value_str} on {date_str}")
+
+
+def cmd_coach(args):
+    device_id = _device_id()
+    data = {
+        "device_id": device_id,
+        "message": args.message,
+        "type": args.type,
+    }
+    if args.habit:
+        habit = _resolve_habit(device_id, args.habit)
+        if habit:
+            # look up uuid
+            full = _get(f"habits?device_id=eq.{device_id}&id=eq.{habit['id']}&select=uuid")
+            if full:
+                data["habit_uuid"] = full[0]["uuid"]
+    result = _post("coaching", data, {"Prefer": "return=representation"})
+    print(f"  Coaching sent (id={result[0]['id']})")
+
+
+def main():
+    parser = argparse.ArgumentParser(
+        prog="habits",
+        description="HabitLoop agent CLI",
+    )
+    sub = parser.add_subparsers(dest="command")
+
+    sub.add_parser("list", help="List habits")
+
+    p = sub.add_parser("entries", help="Recent entries")
+    p.add_argument("--days", type=int, default=7)
+
+    sub.add_parser("summary", help="Streak & completion stats")
+
+    p = sub.add_parser("check", help="Check/uncheck a habit")
+    p.add_argument("habit", help="Habit name (partial match OK)")
+    p.add_argument("value", help="YES / NO / SKIP / integer")
+    p.add_argument("--date", default=None, help="YYYY-MM-DD (default: today)")
+    p.add_argument("--notes", default=None)
+
+    p = sub.add_parser("coach", help="Send coaching message")
+    p.add_argument("message")
+    p.add_argument("--type", default="nudge", choices=["nudge", "insight", "celebration"])
+    p.add_argument("--habit", default=None, help="Related habit name")
+
+    args = parser.parse_args()
+    if not args.command:
+        parser.print_help()
+        return
+
+    cmds = {
+        "list": cmd_list,
+        "entries": cmd_entries,
+        "summary": cmd_summary,
+        "check": cmd_check,
+        "coach": cmd_coach,
+    }
+    cmds[args.command](args)
+
+
+if __name__ == "__main__":
+    main()
