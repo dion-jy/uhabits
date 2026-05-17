@@ -109,6 +109,15 @@ class SupabaseSyncService(
 
     fun fullSync() {
         if (!supabaseClient.isConfigured) return
+        // Pull agent entries every time (no throttle)
+        scope.launch {
+            try {
+                pullAgentEntries()
+            } catch (e: Exception) {
+                Log.w(TAG, "Pull failed", e)
+            }
+        }
+        // Push is throttled to avoid redundant uploads
         val now = System.currentTimeMillis()
         if (now - lastFullSyncMs < FULL_SYNC_INTERVAL_MS) return
         lastFullSyncMs = now
@@ -116,7 +125,6 @@ class SupabaseSyncService(
             try {
                 syncAllHabits()
                 syncRecentEntries()
-                pullAgentEntries()
             } catch (e: Exception) {
                 Log.w(TAG, "Full sync failed", e)
             }

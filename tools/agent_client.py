@@ -55,6 +55,7 @@ def _post(path, data, extra_headers=None):
         return json.loads(resp.read())
 
 
+
 def cmd_habits(args):
     params = "select=*&order=position.asc"
     habits = _get(f"habits?{params}")
@@ -183,7 +184,11 @@ def cmd_check(args):
         "notes": args.notes or "",
         "source": "agent",
     }
-    result = _post("entries", data, {"Prefer": "return=representation,resolution=merge-duplicates"})
+    _post(
+        "entries?on_conflict=device_id,habit_id,timestamp",
+        data,
+        {"Prefer": "return=representation,resolution=merge-duplicates"},
+    )
     print(f"Checked '{habit_name}' = {value_str} on {date_str} (source=agent)")
 
 
