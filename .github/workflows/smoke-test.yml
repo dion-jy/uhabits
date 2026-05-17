@@ -48,8 +48,8 @@ jobs:
           script: |
             adb install uhabits-android/build/outputs/apk/debug/uhabits-android-debug.apk
             adb shell am start -n org.isoron.uhabits.loop/.MainActivity
-            sleep 10
-            echo "=== CRASH LOG ==="
-            adb logcat -d -s AndroidRuntime:E HabitsApplication:* SupabaseClient:* SupabaseSyncService:* CoachingPullService:* *:F | tail -100
+            sleep 15
             echo "=== PROCESS CHECK ==="
-            adb shell pidof org.isoron.uhabits.loop || echo "APP NOT RUNNING (CRASHED)"
+            adb shell pidof org.isoron.uhabits.loop && echo "APP RUNNING OK" || echo "APP NOT RUNNING (CRASHED)"
+            echo "=== FULL CRASH LOG ==="
+            adb logcat -d | grep -i "org.isoron.uhabits\|AndroidRuntime\|FATAL\|crash\|Exception\|Error" | tail -200
