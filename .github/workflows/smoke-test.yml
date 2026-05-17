@@ -47,9 +47,19 @@ jobs:
           profile: pixel_6
           script: |
             adb install uhabits-android/build/outputs/apk/debug/uhabits-android-debug.apk
+            adb logcat -c
             adb shell am start -n org.isoron.uhabits.loop/org.isoron.uhabits.MainActivity
-            sleep 15
+            sleep 20
             echo "=== PROCESS CHECK ==="
-            adb shell pidof org.isoron.uhabits.loop && echo "APP RUNNING OK" || echo "APP NOT RUNNING (CRASHED)"
-            echo "=== FULL CRASH LOG ==="
-            adb logcat -d | grep -i "org.isoron.uhabits\|AndroidRuntime\|FATAL\|crash\|Exception\|Error" | tail -200
+            adb shell pidof org.isoron.uhabits.loop && echo "APP RUNNING OK" || echo "APP NOT RUNNING"
+            echo "=== LOGCAT DUMP ==="
+            adb logcat -d > /tmp/logcat.txt 2>&1
+            cat /tmp/logcat.txt | grep -i "uhabits\|FATAL\|AndroidRuntime" | tail -100
+
+      - name: Upload logcat
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: logcat
+          path: /tmp/logcat.txt
+          retention-days: 3
