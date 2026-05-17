@@ -57,6 +57,25 @@ android {
         targetSdk = 36
         applicationId = "org.isoron.uhabits.loop"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+        buildConfigField(
+            "String",
+            "SUPABASE_URL",
+            "\"${
+                providers.gradleProperty("SUPABASE_URL")
+                    .orElse(providers.environmentVariable("SUPABASE_URL"))
+                    .getOrElse("https://vzhkkxqwqtqajnutpjmt.supabase.co")
+            }\""
+        )
+        buildConfigField(
+            "String",
+            "SUPABASE_ANON_KEY",
+            "\"${
+                providers.gradleProperty("SUPABASE_ANON_KEY")
+                    .orElse(providers.environmentVariable("SUPABASE_ANON_KEY"))
+                    .getOrElse("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ6aGtreHF3cXRxYWpudXRwam10Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg4NTI2MjUsImV4cCI6MjA5NDQyODYyNX0.rRW-MGdghQk2yyPlwmBeCLvgZqIt9IApgVSg-PjSouE")
+            }\""
+        )
     }
 
     signingConfigs {

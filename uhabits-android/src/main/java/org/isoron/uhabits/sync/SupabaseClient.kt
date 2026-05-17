@@ -23,6 +23,7 @@ import android.util.Log
 import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.ObjectMapper
 import me.tatarka.inject.annotations.Inject
+import org.isoron.uhabits.BuildConfig
 import org.isoron.uhabits.core.AppScope
 import org.isoron.uhabits.core.models.Habit
 import java.io.BufferedReader
@@ -39,8 +40,8 @@ class SupabaseClient(
 ) {
     companion object {
         private const val TAG = "SupabaseClient"
-        const val SUPABASE_URL = "https://vzhkkxqwqtqajnutpjmt.supabase.co"
-        const val SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ6aGtreHF3cXRxYWpudXRwam10Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg4NTI2MjUsImV4cCI6MjA5NDQyODYyNX0.rRW-MGdghQk2yyPlwmBeCLvgZqIt9IApgVSg-PjSouE"
+        val SUPABASE_URL: String = BuildConfig.SUPABASE_URL
+        val SUPABASE_ANON_KEY: String = BuildConfig.SUPABASE_ANON_KEY
     }
 
     private val mapper = ObjectMapper().apply {
@@ -73,11 +74,9 @@ class SupabaseClient(
         conn.setRequestProperty("Content-Type", "application/json")
         if (upsert) conn.setRequestProperty("Prefer", "resolution=merge-duplicates")
         val json = mapper.writeValueAsString(body)
-        Log.d(TAG, "POST $table (upsert=$upsert)")
         OutputStreamWriter(conn.outputStream).use { it.write(json) }
         val code = conn.responseCode
         val response = if (code in 200..299) {
-            Log.d(TAG, "POST $table OK ($code)")
             BufferedReader(InputStreamReader(conn.inputStream)).use { it.readText() }
         } else {
             val err = BufferedReader(InputStreamReader(conn.errorStream)).use { it.readText() }

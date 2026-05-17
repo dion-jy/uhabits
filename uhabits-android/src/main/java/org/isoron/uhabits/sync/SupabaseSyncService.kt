@@ -73,13 +73,11 @@ class SupabaseSyncService(
 
     override fun onCommandFinished(command: Command) {
         if (isPulling) return
-        Log.i(TAG, "Command: ${command::class.simpleName}")
         scope.launch {
             try {
                 when (command) {
                     is CreateRepetitionCommand -> {
                         val habit = command.habit
-                        Log.i(TAG, "Syncing entry: habit=${habit.id} date=${command.date}")
                         if (habit.id != null) {
                             supabaseClient.upsertEntry(
                                 habitId = habit.id!!,
@@ -157,7 +155,6 @@ class SupabaseSyncService(
     private suspend fun pullAgentEntries() {
         val agentEntries = supabaseClient.fetchAgentEntries()
         if (agentEntries.isEmpty()) return
-        Log.i(TAG, "Pulling ${agentEntries.size} agent entries")
         isPulling = true
         try {
             for (entry in agentEntries) {
@@ -168,7 +165,6 @@ class SupabaseSyncService(
             }
             habitList.resort()
             supabaseClient.markEntriesPulled(agentEntries.map { it.id })
-            Log.i(TAG, "Pulled ${agentEntries.size} agent entries")
         } finally {
             isPulling = false
         }
