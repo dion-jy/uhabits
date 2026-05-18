@@ -76,6 +76,15 @@ android {
                     .getOrElse("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ6aGtreHF3cXRxYWpudXRwam10Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg4NTI2MjUsImV4cCI6MjA5NDQyODYyNX0.rRW-MGdghQk2yyPlwmBeCLvgZqIt9IApgVSg-PjSouE")
             }\""
         )
+        buildConfigField(
+            "String",
+            "GOOGLE_WEB_CLIENT_ID",
+            "\"${
+                providers.gradleProperty("GOOGLE_WEB_CLIENT_ID")
+                    .orElse(providers.environmentVariable("GOOGLE_WEB_CLIENT_ID"))
+                    .getOrElse("")
+            }\""
+        )
     }
 
     signingConfigs {
@@ -138,6 +147,9 @@ dependencies {
     implementation(libs.kotlinx.coroutines.android)
     implementation(libs.kotlinx.coroutines.core)
     implementation(libs.appcompat)
+    implementation(libs.credentials)
+    implementation(libs.credentials.play)
+    implementation(libs.googleid)
     implementation(libs.legacy.preference.v14)
     implementation(libs.legacy.support.v4)
     implementation(libs.material)

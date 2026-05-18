@@ -54,6 +54,13 @@ def _post(path, data, extra_headers=None):
         return json.loads(resp.read())
 
 
+def _rpc(fn, params):
+    body = json.dumps(params).encode()
+    req = Request(f"{REST}/rpc/{fn}", data=body, headers=_headers())
+    with urlopen(req) as resp:
+        return json.loads(resp.read())
+
+
 def _device_id():
     """Auto-detect the most recently active device_id."""
     habits = _get("habits?select=device_id,synced_at&order=synced_at.desc&limit=1")
@@ -191,6 +198,15 @@ def cmd_check(args):
     print(f"  {habit['name']} = {value_str} on {date_str}")
 
 
+def cmd_link(args):
+    """Generate a device-linking token for the user to enter in the app."""
+    device_id = _device_id()
+    token = _rpc("create_device_link", {"p_instance_id": device_id})
+    print(f"  Link token: {token}")
+    print(f"  Enter this in the app: Settings → Link Agent")
+    print(f"  Expires in 15 minutes.")
+
+
 def cmd_coach(args):
     device_id = _device_id()
     data = {
@@ -222,6 +238,7 @@ def main():
     p.add_argument("--days", type=int, default=7)
 
     sub.add_parser("summary", help="Streak & completion stats")
+    sub.add_parser("link", help="Generate device-linking token")
 
     p = sub.add_parser("check", help="Check/uncheck a habit")
     p.add_argument("habit", help="Habit name (partial match OK)")
@@ -244,6 +261,7 @@ def main():
         "entries": cmd_entries,
         "summary": cmd_summary,
         "check": cmd_check,
+        "link": cmd_link,
         "coach": cmd_coach,
     }
     cmds[args.command](args)

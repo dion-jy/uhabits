@@ -52,6 +52,7 @@ import org.isoron.uhabits.notifications.AndroidNotificationTray
 import org.isoron.uhabits.preferences.SharedPreferencesStorage
 import org.isoron.uhabits.receivers.ReminderController
 import org.isoron.uhabits.sync.CoachingPullService
+import org.isoron.uhabits.sync.SupabaseAuthManager
 import org.isoron.uhabits.sync.SupabaseSyncService
 import org.isoron.uhabits.utils.DatabaseUtils
 import org.isoron.uhabits.widgets.WidgetUpdater
@@ -84,6 +85,7 @@ abstract class HabitsApplicationComponent(
     abstract val taskRunner: TaskRunner
     abstract val widgetPreferences: WidgetPreferences
     abstract val widgetUpdater: WidgetUpdater
+    abstract val supabaseAuthManager: SupabaseAuthManager
     abstract val supabaseSyncService: SupabaseSyncService
     abstract val coachingPullService: CoachingPullService
 

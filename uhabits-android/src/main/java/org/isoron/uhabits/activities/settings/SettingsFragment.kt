@@ -31,15 +31,28 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.EditText
+import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
+import androidx.credentials.CredentialManager
+import androidx.credentials.GetCredentialRequest
+import androidx.lifecycle.lifecycleScope
 import androidx.preference.ListPreference
 import androidx.preference.Preference
 import androidx.preference.PreferenceCategory
 import androidx.preference.PreferenceFragmentCompat
 import androidx.recyclerview.widget.RecyclerView
+import com.google.android.libraries.identity.googleid.GetGoogleIdOption
+import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.isoron.platform.time.DayOfWeek
 import org.isoron.platform.time.JavaLocalDateFormatter
+import org.isoron.uhabits.BuildConfig
 import org.isoron.uhabits.HabitsApplication
 import org.isoron.uhabits.R
+import org.isoron.uhabits.sync.SupabaseAuthManager
 import org.isoron.uhabits.activities.habits.list.RESULT_BUG_REPORT
 import org.isoron.uhabits.activities.habits.list.RESULT_EXPORT_CSV
 import org.isoron.uhabits.activities.habits.list.RESULT_EXPORT_DB
@@ -60,6 +73,7 @@ class SettingsFragment : PreferenceFragmentCompat(), OnSharedPreferenceChangeLis
     private var ringtoneManager: RingtoneManager? = null
     private lateinit var prefs: Preferences
     private var widgetUpdater: WidgetUpdater? = null
+    private lateinit var authManager: SupabaseAuthManager
 
     @Deprecated("Deprecated in Java")
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
@@ -89,6 +103,7 @@ class SettingsFragment : PreferenceFragmentCompat(), OnSharedPreferenceChangeLis
         if (appContext is HabitsApplication) {
             prefs = appContext.component.preferences
             widgetUpdater = appContext.component.widgetUpdater
+            authManager = appContext.component.supabaseAuthManager
         }
         setResultOnPreferenceClick("importData", RESULT_IMPORT_DATA)
         setResultOnPreferenceClick("exportCSV", RESULT_EXPORT_CSV)
@@ -136,6 +151,20 @@ class SettingsFragment : PreferenceFragmentCompat(), OnSharedPreferenceChangeLis
                 startActivity(intent)
                 return true
             }
+            "signInGoogle" -> {
+                signInWithGoogle()
+                return true
+            }
+            "linkAgent" -> {
+                showLinkAgentDialog()
+                return true
+            }
+            "signOut" -> {
+                authManager.signOut()
+                updateAccountUI()
+                Toast.makeText(context, "Signed out", Toast.LENGTH_SHORT).show()
+                return true
+            }
             "rateApp" -> {
                 val intent = Intent(Intent.ACTION_VIEW, Uri.parse(getString(R.string.playStoreURL)))
                 activity?.startActivitySafely(intent)
@@ -168,6 +197,7 @@ class SettingsFragment : PreferenceFragmentCompat(), OnSharedPreferenceChangeLis
         updatePublicBackupFolderSummary()
 
         findPreference("reminderSound").isVisible = false
+        updateAccountUI()
     }
 
     private fun updateWeekdayPreference() {
@@ -258,6 +288,84 @@ class SettingsFragment : PreferenceFragmentCompat(), OnSharedPreferenceChangeLis
             }
             "file" -> java.io.File(uri.path!!).absolutePath
             else -> null
+        }
+    }
+
+    private fun signInWithGoogle() {
+        val clientId = BuildConfig.GOOGLE_WEB_CLIENT_ID
+        if (clientId.isBlank()) {
+            Toast.makeText(context, "Google Client ID not configured", Toast.LENGTH_LONG).show()
+            return
+        }
+        val googleIdOption = GetGoogleIdOption.Builder()
+            .setFilterByAuthorizedAccounts(false)
+            .setServerClientId(clientId)
+            .build()
+        val request = GetCredentialRequest.Builder()
+            .addCredentialOption(googleIdOption)
+            .build()
+        val credentialManager = CredentialManager.create(requireContext())
+        lifecycleScope.launch {
+            try {
+                val result = credentialManager.getCredential(requireActivity(), request)
+                val googleCredential = GoogleIdTokenCredential.createFrom(result.credential.data)
+                val idToken = googleCredential.idToken
+                val authResult = withContext(Dispatchers.IO) {
+                    authManager.signInWithGoogle(idToken)
+                }
+                authResult.fold(
+                    onSuccess = {
+                        Toast.makeText(context, "Signed in as $it", Toast.LENGTH_SHORT).show()
+                        updateAccountUI()
+                    },
+                    onFailure = {
+                        Toast.makeText(context, "Sign-in failed: ${it.message}", Toast.LENGTH_LONG).show()
+                    }
+                )
+            } catch (e: Exception) {
+                Log.w("SettingsFragment", "Google sign-in failed", e)
+                Toast.makeText(context, "Google sign-in failed: ${e.message}", Toast.LENGTH_LONG).show()
+            }
+        }
+    }
+
+    private fun showLinkAgentDialog() {
+        val input = EditText(requireContext()).apply {
+            hint = "Paste the code from your agent"
+        }
+        AlertDialog.Builder(requireContext())
+            .setTitle("Link Agent")
+            .setView(input)
+            .setPositiveButton("Link") { _, _ ->
+                val token = input.text.toString().trim()
+                if (token.isEmpty()) return@setPositiveButton
+                lifecycleScope.launch {
+                    val result = withContext(Dispatchers.IO) {
+                        authManager.claimDeviceLink(token)
+                    }
+                    result.fold(
+                        onSuccess = {
+                            Toast.makeText(context, "Device linked!", Toast.LENGTH_SHORT).show()
+                        },
+                        onFailure = {
+                            Toast.makeText(context, "Link failed: ${it.message}", Toast.LENGTH_LONG).show()
+                        }
+                    )
+                }
+            }
+            .setNegativeButton("Cancel", null)
+            .show()
+    }
+
+    private fun updateAccountUI() {
+        if (!::authManager.isInitialized) return
+        val signedIn = authManager.isSignedIn
+        findPreference("signInGoogle").isVisible = !signedIn
+        findPreference("linkAgent").isEnabled = signedIn
+        findPreference("linkAgent").summary = if (signedIn) "Enter code from your agent" else "Sign in first"
+        findPreference("signOut").isVisible = signedIn
+        if (signedIn) {
+            findPreference("signOut").summary = authManager.userEmail ?: ""
         }
     }
 

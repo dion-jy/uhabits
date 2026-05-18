@@ -115,6 +115,31 @@
     </PreferenceCategory>
 
     <PreferenceCategory
+            android:key="accountCategory"
+            android:title="Account &amp; Agent">
+
+        <Preference
+                android:key="signInGoogle"
+                android:title="Sign in with Google"
+                android:summary="Connect your account for agent sync"
+                app:iconSpaceReserved="false" />
+
+        <Preference
+                android:key="linkAgent"
+                android:title="Link Agent"
+                android:summary="Enter code from your agent"
+                android:enabled="false"
+                app:iconSpaceReserved="false" />
+
+        <Preference
+                android:key="signOut"
+                android:title="Sign out"
+                android:visible="false"
+                app:iconSpaceReserved="false" />
+
+    </PreferenceCategory>
+
+    <PreferenceCategory
             android:key="databaseCategory"
             android:title="@string/database">
 

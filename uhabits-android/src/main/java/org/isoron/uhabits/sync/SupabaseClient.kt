@@ -36,7 +36,8 @@ import java.time.Instant
 @Inject
 @AppScope
 class SupabaseClient(
-    private val deviceIdManager: DeviceIdManager
+    private val deviceIdManager: DeviceIdManager,
+    private val authManager: SupabaseAuthManager
 ) {
     companion object {
         private const val TAG = "SupabaseClient"
@@ -60,8 +61,13 @@ class SupabaseClient(
     private fun openConnection(url: String, method: String): HttpURLConnection {
         val conn = URL(url).openConnection() as HttpURLConnection
         conn.setRequestProperty("apikey", SUPABASE_ANON_KEY)
-        conn.setRequestProperty("Authorization", "Bearer $SUPABASE_ANON_KEY")
-        conn.setRequestProperty("x-device-id", deviceId)
+        val token = authManager.refreshTokenIfNeeded()
+        if (token != null) {
+            conn.setRequestProperty("Authorization", "Bearer $token")
+        } else {
+            conn.setRequestProperty("Authorization", "Bearer $SUPABASE_ANON_KEY")
+            conn.setRequestProperty("x-device-id", deviceId)
+        }
         conn.connectTimeout = 10_000
         conn.readTimeout = 15_000
         conn.requestMethod = method
