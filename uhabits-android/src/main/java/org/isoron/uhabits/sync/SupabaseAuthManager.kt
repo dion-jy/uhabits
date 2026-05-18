@@ -78,13 +78,14 @@ class SupabaseAuthManager(
             conn.setRequestProperty("Content-Type", "application/json")
             conn.doOutput = true
             OutputStreamWriter(conn.outputStream).use { it.write(body) }
-            if (conn.responseCode in 200..299) {
+            val code = conn.responseCode
+            if (code in 200..299) {
                 val response = BufferedReader(InputStreamReader(conn.inputStream)).use { it.readText() }
                 saveSession(response)
                 prefs.getString("access_token", null)
             } else {
-                Log.w(TAG, "Token refresh failed: ${conn.responseCode}")
-                signOut()
+                Log.w(TAG, "Token refresh failed: $code")
+                if (code == 401 || code == 403) signOut()
                 null
             }
         } catch (e: Exception) {
@@ -111,7 +112,7 @@ class SupabaseAuthManager(
                 saveSession(response)
                 Result.success(userEmail ?: "signed in")
             } else {
-                val err = BufferedReader(InputStreamReader(conn.errorStream)).use { it.readText() }
+                val err = conn.errorStream?.let { BufferedReader(InputStreamReader(it)).use { r -> r.readText() } } ?: ""
                 Log.w(TAG, "Sign-in failed: $code $err")
                 Result.failure(Exception("Sign-in failed ($code)"))
             }

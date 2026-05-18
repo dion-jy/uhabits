@@ -85,7 +85,7 @@ class SupabaseClient(
         val response = if (code in 200..299) {
             BufferedReader(InputStreamReader(conn.inputStream)).use { it.readText() }
         } else {
-            val err = BufferedReader(InputStreamReader(conn.errorStream)).use { it.readText() }
+            val err = conn.errorStream?.let { BufferedReader(InputStreamReader(it)).use { r -> r.readText() } } ?: ""
             Log.w(TAG, "POST $table FAILED $code: $err")
             err
         }

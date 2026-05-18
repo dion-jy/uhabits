@@ -73,7 +73,7 @@ class SettingsFragment : PreferenceFragmentCompat(), OnSharedPreferenceChangeLis
     private var ringtoneManager: RingtoneManager? = null
     private lateinit var prefs: Preferences
     private var widgetUpdater: WidgetUpdater? = null
-    private lateinit var authManager: SupabaseAuthManager
+    private var authManager: SupabaseAuthManager? = null
 
     @Deprecated("Deprecated in Java")
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
@@ -160,7 +160,7 @@ class SettingsFragment : PreferenceFragmentCompat(), OnSharedPreferenceChangeLis
                 return true
             }
             "signOut" -> {
-                authManager.signOut()
+                authManager?.signOut()
                 updateAccountUI()
                 Toast.makeText(context, "Signed out", Toast.LENGTH_SHORT).show()
                 return true
@@ -311,8 +311,8 @@ class SettingsFragment : PreferenceFragmentCompat(), OnSharedPreferenceChangeLis
                 val googleCredential = GoogleIdTokenCredential.createFrom(result.credential.data)
                 val idToken = googleCredential.idToken
                 val authResult = withContext(Dispatchers.IO) {
-                    authManager.signInWithGoogle(idToken)
-                }
+                    authManager?.signInWithGoogle(idToken)
+                } ?: return@launch
                 authResult.fold(
                     onSuccess = {
                         Toast.makeText(context, "Signed in as $it", Toast.LENGTH_SHORT).show()
@@ -341,8 +341,8 @@ class SettingsFragment : PreferenceFragmentCompat(), OnSharedPreferenceChangeLis
                 if (token.isEmpty()) return@setPositiveButton
                 lifecycleScope.launch {
                     val result = withContext(Dispatchers.IO) {
-                        authManager.claimDeviceLink(token)
-                    }
+                        authManager?.claimDeviceLink(token)
+                    } ?: return@launch
                     result.fold(
                         onSuccess = {
                             Toast.makeText(context, "Device linked!", Toast.LENGTH_SHORT).show()
@@ -358,14 +358,14 @@ class SettingsFragment : PreferenceFragmentCompat(), OnSharedPreferenceChangeLis
     }
 
     private fun updateAccountUI() {
-        if (!::authManager.isInitialized) return
-        val signedIn = authManager.isSignedIn
+        val am = authManager ?: return
+        val signedIn = am.isSignedIn
         findPreference("signInGoogle").isVisible = !signedIn
         findPreference("linkAgent").isEnabled = signedIn
         findPreference("linkAgent").summary = if (signedIn) "Enter code from your agent" else "Sign in first"
         findPreference("signOut").isVisible = signedIn
         if (signedIn) {
-            findPreference("signOut").summary = authManager.userEmail ?: ""
+            findPreference("signOut").summary = am.userEmail ?: ""
         }
     }
 

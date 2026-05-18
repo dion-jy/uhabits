@@ -19,14 +19,25 @@ from datetime import datetime, timedelta, timezone
 from urllib.request import Request, urlopen
 from urllib.error import HTTPError
 
-SUPABASE_URL = os.environ.get(
-    "SUPABASE_URL",
-    "https://vzhkkxqwqtqajnutpjmt.supabase.co",
-)
-SUPABASE_KEY = os.environ.get(
-    "SUPABASE_SERVICE_ROLE_KEY",
-    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ6aGtreHF3cXRxYWpudXRwam10Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3ODg1MjYyNSwiZXhwIjoyMDk0NDI4NjI1fQ.S09LTGtR9DQV7sJZg9jhDb5zwTRBNts9xpv6olF1bwY",
-)
+SUPABASE_URL = os.environ.get("SUPABASE_URL")
+SUPABASE_KEY = os.environ.get("SUPABASE_SERVICE_ROLE_KEY")
+
+if not SUPABASE_URL or not SUPABASE_KEY:
+    # Try loading from .env file next to this script
+    _env_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), ".env")
+    if os.path.exists(_env_path):
+        for line in open(_env_path):
+            line = line.strip()
+            if line and not line.startswith("#") and "=" in line:
+                k, v = line.split("=", 1)
+                os.environ.setdefault(k.strip(), v.strip())
+        SUPABASE_URL = os.environ.get("SUPABASE_URL")
+        SUPABASE_KEY = os.environ.get("SUPABASE_SERVICE_ROLE_KEY")
+
+if not SUPABASE_URL or not SUPABASE_KEY:
+    print("Error: Set SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY env vars,")
+    print("       or create tools/.env with these values.")
+    sys.exit(1)
 REST = f"{SUPABASE_URL}/rest/v1"
 
 
