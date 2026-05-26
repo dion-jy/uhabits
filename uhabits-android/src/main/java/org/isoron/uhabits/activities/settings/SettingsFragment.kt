@@ -34,16 +34,15 @@ import android.view.ViewGroup
 import android.widget.EditText
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
-import androidx.credentials.CredentialManager
-import androidx.credentials.GetCredentialRequest
 import androidx.lifecycle.lifecycleScope
 import androidx.preference.ListPreference
 import androidx.preference.Preference
 import androidx.preference.PreferenceCategory
 import androidx.preference.PreferenceFragmentCompat
 import androidx.recyclerview.widget.RecyclerView
-import com.google.android.libraries.identity.googleid.GetGoogleIdOption
-import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
+import com.google.android.gms.auth.api.signin.GoogleSignIn
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions
+import com.google.android.gms.common.api.ApiException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -78,6 +77,33 @@ class SettingsFragment : PreferenceFragmentCompat(), OnSharedPreferenceChangeLis
     @Deprecated("Deprecated in Java")
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         when (requestCode) {
+            GOOGLE_SIGN_IN_REQUEST_CODE -> {
+                try {
+                    val account = GoogleSignIn.getSignedInAccountFromIntent(data)
+                        .getResult(ApiException::class.java)
+                    val idToken = account.idToken
+                    if (idToken != null) {
+                        lifecycleScope.launch {
+                            val authResult = withContext(Dispatchers.IO) {
+                                authManager?.signInWithGoogle(idToken)
+                            } ?: return@launch
+                            authResult.fold(
+                                onSuccess = {
+                                    Toast.makeText(context, "Signed in as $it", Toast.LENGTH_SHORT).show()
+                                    updateAccountUI()
+                                },
+                                onFailure = {
+                                    Toast.makeText(context, "Sign-in failed: ${it.message}", Toast.LENGTH_LONG).show()
+                                }
+                            )
+                        }
+                    }
+                } catch (e: ApiException) {
+                    Log.w("SettingsFragment", "Google sign-in failed: ${e.statusCode}", e)
+                    Toast.makeText(context, "Google sign-in failed (${e.statusCode})", Toast.LENGTH_LONG).show()
+                }
+                return
+            }
             RINGTONE_REQUEST_CODE -> {
                 ringtoneManager!!.update(data)
                 updateRingtoneDescription()
@@ -297,36 +323,12 @@ class SettingsFragment : PreferenceFragmentCompat(), OnSharedPreferenceChangeLis
             Toast.makeText(context, "Google Client ID not configured", Toast.LENGTH_LONG).show()
             return
         }
-        val googleIdOption = GetGoogleIdOption.Builder()
-            .setFilterByAuthorizedAccounts(false)
-            .setServerClientId(clientId)
+        val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+            .requestIdToken(clientId)
+            .requestEmail()
             .build()
-        val request = GetCredentialRequest.Builder()
-            .addCredentialOption(googleIdOption)
-            .build()
-        val credentialManager = CredentialManager.create(requireContext())
-        lifecycleScope.launch {
-            try {
-                val result = credentialManager.getCredential(requireActivity(), request)
-                val googleCredential = GoogleIdTokenCredential.createFrom(result.credential.data)
-                val idToken = googleCredential.idToken
-                val authResult = withContext(Dispatchers.IO) {
-                    authManager?.signInWithGoogle(idToken)
-                } ?: return@launch
-                authResult.fold(
-                    onSuccess = {
-                        Toast.makeText(context, "Signed in as $it", Toast.LENGTH_SHORT).show()
-                        updateAccountUI()
-                    },
-                    onFailure = {
-                        Toast.makeText(context, "Sign-in failed: ${it.message}", Toast.LENGTH_LONG).show()
-                    }
-                )
-            } catch (e: Exception) {
-                Log.w("SettingsFragment", "Google sign-in failed", e)
-                Toast.makeText(context, "Google sign-in failed: ${e.message}", Toast.LENGTH_LONG).show()
-            }
-        }
+        val client = GoogleSignIn.getClient(requireActivity(), gso)
+        startActivityForResult(client.signInIntent, GOOGLE_SIGN_IN_REQUEST_CODE)
     }
 
     private fun showLinkAgentDialog() {
@@ -372,5 +374,6 @@ class SettingsFragment : PreferenceFragmentCompat(), OnSharedPreferenceChangeLis
     companion object {
         private const val RINGTONE_REQUEST_CODE = 1
         private const val PUBLIC_BACKUP_REQUEST_CODE = 2
+        private const val GOOGLE_SIGN_IN_REQUEST_CODE = 3
     }
 }
