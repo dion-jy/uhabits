@@ -32,11 +32,13 @@ jobs:
           key: gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
           restore-keys: gradle-
 
+      - name: Install debug keystore
+        run: |
+          mkdir -p ~/.android
+          cp debug.keystore ~/.android/debug.keystore
+
       - name: Build debug APK
         run: ./gradlew :uhabits-android:assembleDebug --stacktrace -PGOOGLE_WEB_CLIENT_ID="${{ secrets.GOOGLE_WEB_CLIENT_ID }}"
-
-      - name: Print debug signing SHA-1
-        run: keytool -printcert -jarfile uhabits-android/build/outputs/apk/debug/uhabits-android-debug.apk | head -20
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
@@ -89,4 +91,3 @@ jobs:
               -H "apikey: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}" \
               -H "Authorization: Bearer ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}"
           done
-
