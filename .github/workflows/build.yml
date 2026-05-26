@@ -32,6 +32,9 @@ jobs:
           key: gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
           restore-keys: gradle-
 
+      - name: Debug signing report
+        run: ./gradlew :uhabits-android:signingReport --quiet 2>&1 | grep -A 1 "SHA1"
+
       - name: Build debug APK
         run: ./gradlew :uhabits-android:assembleDebug --stacktrace -PGOOGLE_WEB_CLIENT_ID="${{ secrets.GOOGLE_WEB_CLIENT_ID }}"
 
