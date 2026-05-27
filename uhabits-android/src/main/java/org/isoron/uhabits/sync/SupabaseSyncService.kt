@@ -107,12 +107,13 @@ class SupabaseSyncService(
 
     fun fullSync() {
         if (!supabaseClient.isConfigured) return
-        // Pull agent entries every time (no throttle)
+        // Pull + heartbeat every time (no throttle)
         scope.launch {
             try {
                 pullAgentEntries()
+                sendHeartbeat()
             } catch (e: Exception) {
-                Log.w(TAG, "Pull failed", e)
+                Log.w(TAG, "Pull/heartbeat failed", e)
             }
         }
         // Push is throttled to avoid redundant uploads
@@ -123,7 +124,6 @@ class SupabaseSyncService(
             try {
                 syncAllHabits()
                 syncRecentEntries()
-                sendHeartbeat()
             } catch (e: Exception) {
                 Log.w(TAG, "Full sync failed", e)
             }
