@@ -33,6 +33,7 @@ import org.isoron.uhabits.core.commands.CreateRepetitionCommand
 import org.isoron.uhabits.core.commands.DeleteHabitsCommand
 import org.isoron.uhabits.core.commands.EditHabitCommand
 import org.isoron.uhabits.core.models.Entry
+import org.isoron.uhabits.core.models.Entry
 import org.isoron.uhabits.core.models.Habit
 import org.isoron.uhabits.core.models.HabitList
 
@@ -123,6 +124,7 @@ class SupabaseSyncService(
             try {
                 syncAllHabits()
                 syncRecentEntries()
+                sendHeartbeat()
             } catch (e: Exception) {
                 Log.w(TAG, "Full sync failed", e)
             }
@@ -168,6 +170,19 @@ class SupabaseSyncService(
         } finally {
             isPulling = false
         }
+    }
+
+    private suspend fun sendHeartbeat() {
+        var entryCount = 0
+        var maxTs = 0L
+        for (habit in habitList) {
+            val known = habit.originalEntries.getKnown()
+            entryCount += known.size
+            for (e in known) {
+                if (e.date.unixTime > maxTs) maxTs = e.date.unixTime
+            }
+        }
+        supabaseClient.sendHeartbeat(habitList.size(), entryCount, maxTs)
     }
 
     private fun HabitList.toList(): List<Habit> {

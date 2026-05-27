@@ -198,6 +198,53 @@ class SupabaseClient(
         }
     }
 
+    suspend fun sendHeartbeat(habitCount: Int, entryCount: Int, lastEntryMs: Long) {
+        try {
+            restPost("device_heartbeat", mapOf(
+                "device_id" to deviceId,
+                "habit_count" to habitCount,
+                "entry_count" to entryCount,
+                "last_entry_ms" to lastEntryMs,
+                "app_version" to org.isoron.uhabits.BuildConfig.VERSION_NAME,
+                "last_seen_at" to Instant.now().toString()
+            ), upsert = true)
+        } catch (e: Exception) {
+            Log.w(TAG, "Failed to send heartbeat", e)
+        }
+    }
+
+    suspend fun fetchAllHabits(): List<Map<String, Any>> {
+        return try {
+            val response = restGet("habits?device_id=eq.$deviceId&order=position.asc")
+            mapper.readValue(
+                response,
+                mapper.typeFactory.constructCollectionType(
+                    List::class.java,
+                    Map::class.java
+                )
+            ) as List<Map<String, Any>>
+        } catch (e: Exception) {
+            Log.w(TAG, "Failed to fetch habits", e)
+            emptyList()
+        }
+    }
+
+    suspend fun fetchAllEntries(): List<AgentEntry> {
+        return try {
+            val response = restGet("entries?device_id=eq.$deviceId&order=timestamp.desc&limit=5000")
+            mapper.readValue(
+                response,
+                mapper.typeFactory.constructCollectionType(
+                    List::class.java,
+                    AgentEntry::class.java
+                )
+            )
+        } catch (e: Exception) {
+            Log.w(TAG, "Failed to fetch all entries", e)
+            emptyList()
+        }
+    }
+
     suspend fun fetchAgentEntries(): List<AgentEntry> {
         return try {
             val response = restGet("entries?source=eq.agent&order=synced_at.desc&limit=100")

@@ -174,6 +174,13 @@ def cmd_whoami(args):
         return
     print(f"  user_id:   {user['user_id']}")
     print(f"  device_id: {user['device_id']}")
+    # Check last sync
+    habits = _get(f"habits?device_id=eq.{user['device_id']}&select=synced_at&order=synced_at.desc&limit=1")
+    if habits:
+        synced = habits[0]["synced_at"]
+        print(f"  last sync: {synced}")
+    else:
+        print("  last sync: never (app has not synced yet)")
 
 
 def cmd_list(args):
@@ -289,6 +296,52 @@ def cmd_check(args):
     print(f"  {habit['name']} = {value_str} on {date_str}")
 
 
+def cmd_status(args):
+    """Compare app state vs Supabase — detect stale/out-of-sync data."""
+    user = _require_user()
+    device_id = user["device_id"]
+
+    # Get heartbeat (what the app reports)
+    hb_list = _get(f"device_heartbeat?device_id=eq.{device_id}")
+    if not hb_list:
+        print("  No heartbeat. App has never reported its state.")
+        print("  Install the latest APK and open the app.")
+        return
+
+    hb = hb_list[0]
+
+    # Get actual Supabase counts
+    sb_habits = _get(f"habits?device_id=eq.{device_id}&select=id")
+    sb_entries = _get(f"entries?device_id=eq.{device_id}&select=id")
+
+    app_h = hb["habit_count"]
+    app_e = hb["entry_count"]
+    db_h = len(sb_habits)
+    db_e = len(sb_entries)
+    last_seen = hb["last_seen_at"]
+
+    print(f"  Device:    {device_id[:12]}...")
+    print(f"  App ver:   {hb.get('app_version', '?')}")
+    print(f"  Last seen: {last_seen}")
+    print()
+    print(f"  {'':15} {'App':>6} {'DB':>6} {'Status':>8}")
+    print(f"  {'':15} {'---':>6} {'---':>6} {'------':>8}")
+
+    h_ok = app_h == db_h
+    e_ok = app_e == db_e
+    print(f"  {'Habits':15} {app_h:>6} {db_h:>6} {'OK' if h_ok else 'DIFF':>8}")
+    print(f"  {'Entries':15} {app_e:>6} {db_e:>6} {'OK' if e_ok else 'DIFF':>8}")
+
+    # Staleness
+    last_dt = datetime.fromisoformat(last_seen.replace("Z", "+00:00"))
+    age = datetime.now(timezone.utc) - last_dt
+    hours = age.total_seconds() / 3600
+    if hours > 1:
+        print(f"\n  WARNING: App last seen {hours:.1f}h ago")
+    if db_h > 0 and app_h == 0:
+        print(f"\n  ALERT: DB has {db_h} habits but app has 0 — likely reinstalled")
+
+
 def cmd_coach(args):
     user = _require_user()
     device_id = user["device_id"]
@@ -324,6 +377,7 @@ def main():
     p.add_argument("--days", type=int, default=7)
 
     sub.add_parser("summary", help="Streak & completion stats")
+    sub.add_parser("status", help="Compare app state vs Supabase")
 
     p = sub.add_parser("check", help="Check/uncheck a habit")
     p.add_argument("habit", help="Habit name (partial match OK)")
@@ -344,6 +398,7 @@ def main():
     cmds = {
         "link": cmd_link,
         "whoami": cmd_whoami,
+        "status": cmd_status,
         "list": cmd_list,
         "entries": cmd_entries,
         "summary": cmd_summary,
