@@ -88,6 +88,12 @@ android {
     }
 
     signingConfigs {
+        getByName("debug") {
+            storeFile = rootProject.file("debug.keystore")
+            storePassword = "android"
+            keyAlias = "androiddebugkey"
+            keyPassword = "android"
+        }
         if (System.getenv("LOOP_KEY_ALIAS") != null) {
             create("release") {
                 keyAlias = System.getenv("LOOP_KEY_ALIAS")
@@ -108,6 +114,7 @@ android {
         }
 
         debug {
+            signingConfig = signingConfigs.getByName("debug")
             enableUnitTestCoverage = true
         }
     }
