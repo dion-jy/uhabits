@@ -21,3 +21,4 @@ kotlin-js-store
 *.md
 .kotlin
 tools/.env
+tools/.user

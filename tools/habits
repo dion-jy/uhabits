@@ -2,13 +2,17 @@
 """
 P18 HabitLoop CLI — Agent interface for habit data.
 
+Multi-user: each agent must `habits link` first to bind to a user.
+After linking, all commands are scoped to that user only.
+
 Usage:
-    habits list                          # list all habits
+    habits link                          # generate token, bind to user
+    habits list                          # list habits
     habits summary                       # streak & completion stats
     habits entries [--days 7]            # recent entries
     habits check <habit> YES [--date D]  # check a habit
-    habits check <habit> NO              # uncheck a habit
     habits coach <message> [--type T]    # send coaching message
+    habits whoami                        # show linked user info
 """
 
 import argparse
@@ -19,27 +23,31 @@ from datetime import datetime, timedelta, timezone
 from urllib.request import Request, urlopen
 from urllib.error import HTTPError
 
+# --- Config ---
+
+_script_dir = os.path.dirname(os.path.abspath(__file__))
+_env_path = os.path.join(_script_dir, ".env")
+_user_path = os.path.join(_script_dir, ".user")
+
+# Load .env
+if os.path.exists(_env_path):
+    for line in open(_env_path):
+        line = line.strip()
+        if line and not line.startswith("#") and "=" in line:
+            k, v = line.split("=", 1)
+            os.environ.setdefault(k.strip(), v.strip())
+
 SUPABASE_URL = os.environ.get("SUPABASE_URL")
 SUPABASE_KEY = os.environ.get("SUPABASE_SERVICE_ROLE_KEY")
 
 if not SUPABASE_URL or not SUPABASE_KEY:
-    # Try loading from .env file next to this script
-    _env_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), ".env")
-    if os.path.exists(_env_path):
-        for line in open(_env_path):
-            line = line.strip()
-            if line and not line.startswith("#") and "=" in line:
-                k, v = line.split("=", 1)
-                os.environ.setdefault(k.strip(), v.strip())
-        SUPABASE_URL = os.environ.get("SUPABASE_URL")
-        SUPABASE_KEY = os.environ.get("SUPABASE_SERVICE_ROLE_KEY")
-
-if not SUPABASE_URL or not SUPABASE_KEY:
-    print("Error: Set SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY env vars,")
-    print("       or create tools/.env with these values.")
+    print("Error: Set SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY in tools/.env")
     sys.exit(1)
+
 REST = f"{SUPABASE_URL}/rest/v1"
 
+
+# --- HTTP helpers ---
 
 def _headers(extra=None):
     h = {
@@ -72,23 +80,37 @@ def _rpc(fn, params):
         return json.loads(resp.read())
 
 
-def _device_id():
-    """Auto-detect the most recently active device_id."""
-    habits = _get("habits?select=device_id,synced_at&order=synced_at.desc&limit=1")
-    if not habits:
-        print("No device found. Sync the app first.")
+# --- User scoping ---
+
+def _save_user(user_id, device_id):
+    with open(_user_path, "w") as f:
+        json.dump({"user_id": user_id, "device_id": device_id}, f)
+
+
+def _load_user():
+    if not os.path.exists(_user_path):
+        return None
+    with open(_user_path) as f:
+        return json.load(f)
+
+
+def _require_user():
+    user = _load_user()
+    if not user:
+        print("Not linked. Run 'habits link' first.")
         sys.exit(1)
-    return habits[0]["device_id"]
+    return user
+
+
+def _user_device_id():
+    return _require_user()["device_id"]
 
 
 def _resolve_habit(device_id, name):
-    """Find habit by name (case-insensitive partial match)."""
     habits = _get(f"habits?device_id=eq.{device_id}&select=id,name")
-    # Exact match first
     for h in habits:
         if h["name"].lower() == name.lower():
             return h
-    # Partial match
     for h in habits:
         if name.lower() in h["name"].lower():
             return h
@@ -97,8 +119,49 @@ def _resolve_habit(device_id, name):
 
 # --- Commands ---
 
+def cmd_link(args):
+    """Generate a device-linking token and wait for claim."""
+    # Find the device_id for this user (most recent synced)
+    habits = _get("habits?select=device_id,synced_at&order=synced_at.desc&limit=1")
+    if not habits:
+        print("No device found. Sync the app first.")
+        return
+    device_id = habits[0]["device_id"]
+
+    # Generate token
+    token = _rpc("create_device_link", {"p_instance_id": device_id})
+    print(f"  Link token: {token}")
+    print(f"  Enter this in the app: Settings → Link Agent")
+    print(f"  Expires in 15 minutes.")
+    print()
+
+    # Wait for claim
+    print("  Waiting for claim...", end="", flush=True)
+    import time
+    for _ in range(90):  # 15 min = 900s, check every 10s
+        time.sleep(10)
+        print(".", end="", flush=True)
+        links = _get(f"device_links?token=eq.{token}&select=user_id,used")
+        if links and links[0].get("used"):
+            user_id = links[0].get("user_id")
+            if user_id:
+                _save_user(user_id, device_id)
+                print(f"\n  Linked! user_id={user_id[:8]}...")
+                return
+    print("\n  Token expired. Try again.")
+
+
+def cmd_whoami(args):
+    user = _load_user()
+    if not user:
+        print("  Not linked. Run 'habits link' first.")
+        return
+    print(f"  user_id:   {user['user_id']}")
+    print(f"  device_id: {user['device_id']}")
+
+
 def cmd_list(args):
-    device_id = _device_id()
+    device_id = _user_device_id()
     habits = _get(f"habits?device_id=eq.{device_id}&order=position.asc")
     if not habits:
         print("No habits.")
@@ -111,14 +174,13 @@ def cmd_list(args):
 
 
 def cmd_entries(args):
-    device_id = _device_id()
+    device_id = _user_device_id()
     days = args.days
     cutoff_ms = int((datetime.now(timezone.utc) - timedelta(days=days)).timestamp() * 1000)
     entries = _get(f"entries?device_id=eq.{device_id}&timestamp=gte.{cutoff_ms}&order=timestamp.desc")
     if not entries:
         print(f"No entries in last {days} days.")
         return
-    # Build habit name map
     habits = _get(f"habits?device_id=eq.{device_id}&select=id,name")
     name_map = {h["id"]: h["name"] for h in habits}
     val_map = {2: "YES", 1: "AUTO", 0: "NO", 3: "SKIP"}
@@ -132,7 +194,7 @@ def cmd_entries(args):
 
 
 def cmd_summary(args):
-    device_id = _device_id()
+    device_id = _user_device_id()
     habits = _get(f"habits?device_id=eq.{device_id}&order=position.asc")
     if not habits:
         print("No habits.")
@@ -172,7 +234,7 @@ def cmd_summary(args):
 
 
 def cmd_check(args):
-    device_id = _device_id()
+    device_id = _user_device_id()
     value_str = args.value.upper()
     date_str = args.date or datetime.now(timezone.utc).strftime("%Y-%m-%d")
 
@@ -209,17 +271,8 @@ def cmd_check(args):
     print(f"  {habit['name']} = {value_str} on {date_str}")
 
 
-def cmd_link(args):
-    """Generate a device-linking token for the user to enter in the app."""
-    device_id = _device_id()
-    token = _rpc("create_device_link", {"p_instance_id": device_id})
-    print(f"  Link token: {token}")
-    print(f"  Enter this in the app: Settings → Link Agent")
-    print(f"  Expires in 15 minutes.")
-
-
 def cmd_coach(args):
-    device_id = _device_id()
+    device_id = _user_device_id()
     data = {
         "device_id": device_id,
         "message": args.message,
@@ -228,7 +281,6 @@ def cmd_coach(args):
     if args.habit:
         habit = _resolve_habit(device_id, args.habit)
         if habit:
-            # look up uuid
             full = _get(f"habits?device_id=eq.{device_id}&id=eq.{habit['id']}&select=uuid")
             if full:
                 data["habit_uuid"] = full[0]["uuid"]
@@ -239,17 +291,18 @@ def cmd_coach(args):
 def main():
     parser = argparse.ArgumentParser(
         prog="habits",
-        description="HabitLoop agent CLI",
+        description="HabitLoop agent CLI (multi-user)",
     )
     sub = parser.add_subparsers(dest="command")
 
+    sub.add_parser("link", help="Link to a user (generate token)")
+    sub.add_parser("whoami", help="Show linked user info")
     sub.add_parser("list", help="List habits")
 
     p = sub.add_parser("entries", help="Recent entries")
     p.add_argument("--days", type=int, default=7)
 
     sub.add_parser("summary", help="Streak & completion stats")
-    sub.add_parser("link", help="Generate device-linking token")
 
     p = sub.add_parser("check", help="Check/uncheck a habit")
     p.add_argument("habit", help="Habit name (partial match OK)")
@@ -268,11 +321,12 @@ def main():
         return
 
     cmds = {
+        "link": cmd_link,
+        "whoami": cmd_whoami,
         "list": cmd_list,
         "entries": cmd_entries,
         "summary": cmd_summary,
         "check": cmd_check,
-        "link": cmd_link,
         "coach": cmd_coach,
     }
     cmds[args.command](args)
