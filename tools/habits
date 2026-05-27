@@ -103,15 +103,29 @@ def _require_user():
     return user
 
 
+def _user_id():
+    return _require_user()["user_id"]
+
+
 def _user_device_id():
     return _require_user()["device_id"]
 
 
-def _resolve_habit(device_id, name):
-    habits = _get(f"habits?device_id=eq.{device_id}&select=id,name")
+def _user_filter():
+    """Return query filter: user_id if available, else device_id."""
+    user = _require_user()
+    if user.get("user_id"):
+        return f"user_id=eq.{user['user_id']}"
+    return f"device_id=eq.{user['device_id']}"
+
+
+def _resolve_habit(name):
+    habits = _get(f"habits?{_user_filter()}&select=id,name,device_id")
+    # Exact match first
     for h in habits:
         if h["name"].lower() == name.lower():
             return h
+    # Partial match
     for h in habits:
         if name.lower() in h["name"].lower():
             return h
@@ -184,8 +198,7 @@ def cmd_whoami(args):
 
 
 def cmd_list(args):
-    device_id = _user_device_id()
-    habits = _get(f"habits?device_id=eq.{device_id}&order=position.asc")
+    habits = _get(f"habits?{_user_filter()}&order=position.asc")
     if not habits:
         print("No habits.")
         return
@@ -197,14 +210,14 @@ def cmd_list(args):
 
 
 def cmd_entries(args):
-    device_id = _user_device_id()
+    uf = _user_filter()
     days = args.days
     cutoff_ms = int((datetime.now(timezone.utc) - timedelta(days=days)).timestamp() * 1000)
-    entries = _get(f"entries?device_id=eq.{device_id}&timestamp=gte.{cutoff_ms}&order=timestamp.desc")
+    entries = _get(f"entries?{uf}&timestamp=gte.{cutoff_ms}&order=timestamp.desc")
     if not entries:
         print(f"No entries in last {days} days.")
         return
-    habits = _get(f"habits?device_id=eq.{device_id}&select=id,name")
+    habits = _get(f"habits?{uf}&select=id,name")
     name_map = {h["id"]: h["name"] for h in habits}
     val_map = {2: "YES", 1: "AUTO", 0: "NO", 3: "SKIP"}
     for e in entries:
@@ -217,13 +230,13 @@ def cmd_entries(args):
 
 
 def cmd_summary(args):
-    device_id = _user_device_id()
-    habits = _get(f"habits?device_id=eq.{device_id}&order=position.asc")
+    uf = _user_filter()
+    habits = _get(f"habits?{uf}&order=position.asc")
     if not habits:
         print("No habits.")
         return
     cutoff_ms = int((datetime.now(timezone.utc) - timedelta(days=90)).timestamp() * 1000)
-    entries = _get(f"entries?device_id=eq.{device_id}&timestamp=gte.{cutoff_ms}&order=timestamp.desc")
+    entries = _get(f"entries?{uf}&timestamp=gte.{cutoff_ms}&order=timestamp.desc")
 
     by_habit = {}
     for e in entries:
@@ -257,7 +270,6 @@ def cmd_summary(args):
 
 
 def cmd_check(args):
-    device_id = _user_device_id()
     value_str = args.value.upper()
     date_str = args.date or datetime.now(timezone.utc).strftime("%Y-%m-%d")
 
@@ -271,7 +283,7 @@ def cmd_check(args):
             print(f"Invalid value: {value_str}. Use YES/NO/SKIP or integer.")
             return
 
-    habit = _resolve_habit(device_id, args.habit)
+    habit = _resolve_habit(args.habit)
     if not habit:
         print(f"Habit '{args.habit}' not found.")
         return
@@ -283,7 +295,7 @@ def cmd_check(args):
     _post(
         "entries?on_conflict=device_id,habit_id,timestamp",
         {
-            "device_id": device_id,
+            "device_id": habit["device_id"],
             "habit_id": habit["id"],
             "timestamp": timestamp_ms,
             "value": value,
@@ -310,9 +322,10 @@ def cmd_status(args):
 
     hb = hb_list[0]
 
-    # Get actual Supabase counts
-    sb_habits = _get(f"habits?device_id=eq.{device_id}&select=id")
-    sb_entries = _get(f"entries?device_id=eq.{device_id}&select=id")
+    # Get actual Supabase counts (across all devices for this user)
+    uf = _user_filter()
+    sb_habits = _get(f"habits?{uf}&select=id")
+    sb_entries = _get(f"entries?{uf}&select=id")
 
     app_h = hb["habit_count"]
     app_e = hb["entry_count"]
@@ -344,19 +357,18 @@ def cmd_status(args):
 
 def cmd_coach(args):
     user = _require_user()
-    device_id = user["device_id"]
     data = {
-        "device_id": device_id,
+        "device_id": _user_device_id(),
         "user_id": user.get("user_id"),
         "message": args.message,
         "type": args.type,
     }
     if args.habit:
-        habit = _resolve_habit(device_id, args.habit)
+        habit = _resolve_habit(args.habit)
         if habit:
-            full = _get(f"habits?device_id=eq.{device_id}&id=eq.{habit['id']}&select=uuid")
-            if full:
-                data["habit_uuid"] = full[0]["uuid"]
+            data["habit_uuid"] = _get(
+                f"habits?{_user_filter()}&id=eq.{habit['id']}&select=uuid"
+            )[0].get("uuid")
     result = _post("coaching", data, {"Prefer": "return=representation"})
     print(f"  Coaching sent (id={result[0]['id']})")
 
