@@ -178,7 +178,12 @@ class SupabaseAuthManager(
                 patchConn.disconnect()
             } catch (_: Exception) {}
 
+            val tokenBytes = ByteArray(16)
+            random.nextBytes(tokenBytes)
+            val token = tokenBytes.joinToString("") { "%02x".format(it) }
+
             val body = mapper.writeValueAsString(mapOf(
+                "token" to token,
                 "instance_id" to deviceId,
                 "user_id" to userId,
                 "agent_secret" to agentSecret,
