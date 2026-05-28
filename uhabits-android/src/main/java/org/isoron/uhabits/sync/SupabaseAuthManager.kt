@@ -152,6 +152,42 @@ class SupabaseAuthManager(
         }
     }
 
+    fun generateAgentCode(deviceId: String): Result<String> {
+        val accessTk = refreshTokenIfNeeded()
+            ?: return Result.failure(Exception("Not signed in"))
+        return try {
+            val random = java.security.SecureRandom()
+            val bytes = ByteArray(32)
+            random.nextBytes(bytes)
+            val agentSecret = bytes.joinToString("") { "%02x".format(it) }
+
+            val body = mapper.writeValueAsString(mapOf(
+                "instance_id" to deviceId,
+                "user_id" to prefs.getString("user_id", null),
+                "agent_secret" to agentSecret,
+                "used" to true
+            ))
+            val url = "${BuildConfig.SUPABASE_URL}/rest/v1/device_links"
+            val conn = URL(url).openConnection() as HttpURLConnection
+            conn.requestMethod = "POST"
+            conn.setRequestProperty("apikey", BuildConfig.SUPABASE_ANON_KEY)
+            conn.setRequestProperty("Authorization", "Bearer $accessTk")
+            conn.setRequestProperty("Content-Type", "application/json")
+            conn.doOutput = true
+            OutputStreamWriter(conn.outputStream).use { it.write(body) }
+            val code = conn.responseCode
+            if (code in 200..299) {
+                Result.success(agentSecret)
+            } else {
+                val err = conn.errorStream?.let { BufferedReader(InputStreamReader(it)).use { r -> r.readText() } } ?: ""
+                Log.w(TAG, "Generate agent code failed: $code $err")
+                Result.failure(Exception("Failed ($code)"))
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
     fun signOut() {
         prefs.edit().clear().apply()
     }
@@ -163,11 +199,13 @@ class SupabaseAuthManager(
         val expiresIn = tree.get("expires_in")?.asLong() ?: 3600
         val email = tree.get("user")?.get("email")?.asText()
             ?: decodeEmailFromJwt(accessToken)
+        val userId = tree.get("user")?.get("id")?.asText()
         prefs.edit()
             .putString("access_token", accessToken)
             .putString("refresh_token", refreshToken)
             .putLong("expires_at", System.currentTimeMillis() / 1000 + expiresIn)
             .putString("user_email", email)
+            .putString("user_id", userId)
             .apply()
     }
 

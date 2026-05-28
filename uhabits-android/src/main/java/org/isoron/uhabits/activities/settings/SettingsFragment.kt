@@ -181,8 +181,8 @@ class SettingsFragment : PreferenceFragmentCompat(), OnSharedPreferenceChangeLis
                 signInWithGoogle()
                 return true
             }
-            "linkAgent" -> {
-                showLinkAgentDialog()
+            "generateAgentCode" -> {
+                generateAgentCode()
                 return true
             }
             "signOut" -> {
@@ -331,40 +331,48 @@ class SettingsFragment : PreferenceFragmentCompat(), OnSharedPreferenceChangeLis
         startActivityForResult(client.signInIntent, GOOGLE_SIGN_IN_REQUEST_CODE)
     }
 
-    private fun showLinkAgentDialog() {
-        val input = EditText(requireContext()).apply {
-            hint = "Paste the code from your agent"
-        }
-        AlertDialog.Builder(requireContext())
-            .setTitle("Link Agent")
-            .setView(input)
-            .setPositiveButton("Link") { _, _ ->
-                val token = input.text.toString().trim()
-                if (token.isEmpty()) return@setPositiveButton
-                lifecycleScope.launch {
-                    val result = withContext(Dispatchers.IO) {
-                        authManager?.claimDeviceLink(token)
-                    } ?: return@launch
-                    result.fold(
-                        onSuccess = {
-                            Toast.makeText(context, "Device linked!", Toast.LENGTH_SHORT).show()
-                        },
-                        onFailure = {
-                            Toast.makeText(context, "Link failed: ${it.message}", Toast.LENGTH_LONG).show()
-                        }
-                    )
-                }
+    private fun generateAgentCode() {
+        val deviceId = (requireContext().applicationContext as HabitsApplication)
+            .component.let {
+                org.isoron.uhabits.sync.DeviceIdManager(requireContext().applicationContext).deviceId
             }
-            .setNegativeButton("Cancel", null)
-            .show()
+        lifecycleScope.launch {
+            val result = withContext(Dispatchers.IO) {
+                authManager?.generateAgentCode(deviceId)
+            } ?: return@launch
+            result.fold(
+                onSuccess = { secret ->
+                    val input = EditText(requireContext()).apply {
+                        setText(secret)
+                        setTextIsSelectable(true)
+                        isFocusable = false
+                    }
+                    AlertDialog.Builder(requireContext())
+                        .setTitle("Agent Code")
+                        .setMessage("Give this code to your agent:")
+                        .setView(input)
+                        .setPositiveButton("Copy") { _, _ ->
+                            val clip = android.content.ClipData.newPlainText("agent_secret", secret)
+                            (requireContext().getSystemService(android.content.Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager)
+                                .setPrimaryClip(clip)
+                            Toast.makeText(context, "Copied!", Toast.LENGTH_SHORT).show()
+                        }
+                        .setNegativeButton("Close", null)
+                        .show()
+                },
+                onFailure = {
+                    Toast.makeText(context, "Failed: ${it.message}", Toast.LENGTH_LONG).show()
+                }
+            )
+        }
     }
 
     private fun updateAccountUI() {
         val am = authManager ?: return
         val signedIn = am.isSignedIn
         findPreference("signInGoogle").isVisible = !signedIn
-        findPreference("linkAgent").isEnabled = signedIn
-        findPreference("linkAgent").summary = if (signedIn) "Enter code from your agent" else "Sign in first"
+        findPreference("generateAgentCode").isEnabled = signedIn
+        findPreference("generateAgentCode").summary = if (signedIn) "Generate a code for your agent" else "Sign in first"
         findPreference("signOut").isVisible = signedIn
         if (signedIn) {
             findPreference("signOut").summary = am.userEmail ?: ""

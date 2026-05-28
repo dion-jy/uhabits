@@ -125,9 +125,9 @@
                 app:iconSpaceReserved="false" />
 
         <Preference
-                android:key="linkAgent"
+                android:key="generateAgentCode"
                 android:title="Link Agent"
-                android:summary="Enter code from your agent"
+                android:summary="Generate a code for your agent"
                 android:enabled="false"
                 app:iconSpaceReserved="false" />
 
