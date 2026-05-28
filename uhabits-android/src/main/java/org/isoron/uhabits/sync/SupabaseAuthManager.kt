@@ -85,13 +85,14 @@ class SupabaseAuthManager(
                 prefs.getString("access_token", null)
             } else {
                 Log.w(TAG, "Token refresh failed: $code")
-                // Don't sign out on refresh failure — keep the session
-                // so user doesn't have to re-login. The next app open
-                // will retry. Signing out breaks RLS for user_id-set rows.
+                // Clear access_token so we fall back to anon key + device_id
+                // Keep refresh_token so we can retry on next app open
+                prefs.edit().remove("access_token").remove("expires_at").apply()
                 null
             }
         } catch (e: Exception) {
             Log.w(TAG, "Token refresh error", e)
+            prefs.edit().remove("access_token").remove("expires_at").apply()
             null
         }
     }
