@@ -113,26 +113,52 @@ class SupabaseSyncService(
 
     fun fullSync() {
         if (!supabaseClient.isConfigured) return
-        // Pull + heartbeat every time (no throttle)
         scope.launch {
+            val log = mutableListOf<String>()
             try {
-                pullAgentEntries()
-                sendHeartbeat()
+                log.add("device=${supabaseClient.currentDeviceId}")
+                log.add("hasJwt=${supabaseClient.hasAuthToken}")
+
+                try {
+                    pullAgentEntries()
+                    log.add("pull=ok")
+                } catch (e: Exception) {
+                    log.add("pull=ERR:${e.message}")
+                }
+
+                try {
+                    sendHeartbeat()
+                    log.add("heartbeat=ok")
+                } catch (e: Exception) {
+                    log.add("heartbeat=ERR:${e.message}")
+                }
+
+                // Push (throttled)
+                val now = System.currentTimeMillis()
+                if (now - lastFullSyncMs >= FULL_SYNC_INTERVAL_MS) {
+                    lastFullSyncMs = now
+                    try {
+                        val habits = habitList.toList()
+                        log.add("habits=${habits.size}")
+                        supabaseClient.upsertHabits(habits)
+                        log.add("habitPush=ok")
+                    } catch (e: Exception) {
+                        log.add("habitPush=ERR:${e.message}")
+                    }
+                    try {
+                        syncRecentEntries()
+                        log.add("entryPush=ok")
+                    } catch (e: Exception) {
+                        log.add("entryPush=ERR:${e.message}")
+                    }
+                } else {
+                    log.add("pushThrottled")
+                }
             } catch (e: Exception) {
-                Log.w(TAG, "Pull/heartbeat failed", e)
+                log.add("FATAL:${e.message}")
             }
-        }
-        // Push is throttled to avoid redundant uploads
-        val now = System.currentTimeMillis()
-        if (now - lastFullSyncMs < FULL_SYNC_INTERVAL_MS) return
-        lastFullSyncMs = now
-        scope.launch {
-            try {
-                syncAllHabits()
-                syncRecentEntries()
-            } catch (e: Exception) {
-                Log.w(TAG, "Full sync failed", e)
-            }
+            // Write sync log to Supabase (always use service-independent path)
+            supabaseClient.writeSyncLog(log.joinToString("; "))
         }
     }
 

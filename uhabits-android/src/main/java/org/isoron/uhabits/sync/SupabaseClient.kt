@@ -52,6 +52,12 @@ class SupabaseClient(
     val isConfigured: Boolean
         get() = SUPABASE_URL != "https://YOUR_PROJECT.supabase.co"
 
+    val currentDeviceId: String
+        get() = deviceIdManager.deviceId
+
+    val hasAuthToken: Boolean
+        get() = authManager.isSignedIn
+
     private val deviceId: String
         get() = deviceIdManager.deviceId
 
@@ -196,6 +202,27 @@ class SupabaseClient(
         } catch (e: Exception) {
             Log.w(TAG, "Failed to delete habits", e)
         }
+    }
+
+    fun writeSyncLog(message: String) {
+        try {
+            // Use anon key directly (bypass auth) to ensure log always writes
+            val conn = URL("$restUrl/coaching").openConnection() as HttpURLConnection
+            conn.requestMethod = "POST"
+            conn.setRequestProperty("apikey", SUPABASE_ANON_KEY)
+            conn.setRequestProperty("Authorization", "Bearer $SUPABASE_ANON_KEY")
+            conn.setRequestProperty("x-device-id", deviceId)
+            conn.setRequestProperty("Content-Type", "application/json")
+            conn.doOutput = true
+            val body = mapper.writeValueAsString(mapOf(
+                "device_id" to deviceId,
+                "message" to message,
+                "type" to "sync_log"
+            ))
+            OutputStreamWriter(conn.outputStream).use { it.write(body) }
+            conn.responseCode
+            conn.disconnect()
+        } catch (_: Exception) {}
     }
 
     suspend fun sendHeartbeat(habitCount: Int, entryCount: Int, lastEntryMs: Long) {
