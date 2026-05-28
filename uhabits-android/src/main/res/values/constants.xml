@@ -19,7 +19,7 @@
   -->
 <resources>
     <string name="helpURL">http://loophabits.org/faq.html</string>
-    <string name="playStoreURL">market://details?id=org.isoron.uhabits</string>
+    <string name="playStoreURL">market://details?id=org.isoron.uhabits.loop</string>
     <string name="feedbackURL" formatted="false">mailto:dev@loophabits.org?subject=Feedback%20about%20Loop%20Habit%20Tracker</string>
     <string name="privacyPolicyURL" formatted="false">http://loophabits.org/privacy</string>
     <string name="codeContributorsURL" formatted="false">https://github.com/iSoron/uhabits/graphs/contributors</string>

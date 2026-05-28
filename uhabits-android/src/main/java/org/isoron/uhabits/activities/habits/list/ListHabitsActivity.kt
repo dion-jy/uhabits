@@ -208,6 +208,6 @@ class ListHabitsActivity : AppCompatActivity(), Preferences.Listener {
     }
 
     companion object {
-        const val ACTION_EDIT = "org.isoron.uhabits.ACTION_EDIT"
+        const val ACTION_EDIT = "org.isoron.uhabits.loop.ACTION_EDIT"
     }
 }
