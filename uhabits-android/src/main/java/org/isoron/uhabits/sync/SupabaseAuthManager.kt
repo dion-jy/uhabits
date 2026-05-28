@@ -161,9 +161,26 @@ class SupabaseAuthManager(
             random.nextBytes(bytes)
             val agentSecret = bytes.joinToString("") { "%02x".format(it) }
 
+            // Invalidate old secrets for this user
+            val userId = prefs.getString("user_id", null)
+            try {
+                val patchUrl = "${BuildConfig.SUPABASE_URL}/rest/v1/device_links?user_id=eq.$userId&agent_secret=not.is.null"
+                val patchConn = URL(patchUrl).openConnection() as HttpURLConnection
+                patchConn.requestMethod = "PATCH"
+                patchConn.setRequestProperty("apikey", BuildConfig.SUPABASE_ANON_KEY)
+                patchConn.setRequestProperty("Authorization", "Bearer $accessTk")
+                patchConn.setRequestProperty("Content-Type", "application/json")
+                patchConn.doOutput = true
+                OutputStreamWriter(patchConn.outputStream).use {
+                    it.write(mapper.writeValueAsString(mapOf("agent_secret" to null)))
+                }
+                patchConn.responseCode
+                patchConn.disconnect()
+            } catch (_: Exception) {}
+
             val body = mapper.writeValueAsString(mapOf(
                 "instance_id" to deviceId,
-                "user_id" to prefs.getString("user_id", null),
+                "user_id" to userId,
                 "agent_secret" to agentSecret,
                 "used" to true
             ))
