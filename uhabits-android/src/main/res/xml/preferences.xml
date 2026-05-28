@@ -132,6 +132,12 @@
                 app:iconSpaceReserved="false" />
 
         <Preference
+                android:key="syncNow"
+                android:title="Sync Now"
+                android:summary="Sync habits with cloud"
+                app:iconSpaceReserved="false" />
+
+        <Preference
                 android:key="signOut"
                 android:title="Sign out"
                 android:visible="false"

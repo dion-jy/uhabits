@@ -105,6 +105,12 @@ class SupabaseSyncService(
         }
     }
 
+    fun forceFullSync() {
+        if (!supabaseClient.isConfigured) return
+        lastFullSyncMs = 0
+        fullSync()
+    }
+
     fun fullSync() {
         if (!supabaseClient.isConfigured) return
         // Pull + heartbeat every time (no throttle)

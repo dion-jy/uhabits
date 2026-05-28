@@ -185,6 +185,12 @@ class SettingsFragment : PreferenceFragmentCompat(), OnSharedPreferenceChangeLis
                 generateAgentCode()
                 return true
             }
+            "syncNow" -> {
+                val app = requireContext().applicationContext as HabitsApplication
+                app.component.supabaseSyncService.forceFullSync()
+                Toast.makeText(context, "Syncing...", Toast.LENGTH_SHORT).show()
+                return true
+            }
             "signOut" -> {
                 authManager?.signOut()
                 updateAccountUI()
