@@ -136,6 +136,12 @@ abstract class BaseWidgetProvider : AppWidgetProvider() {
                 "setText",
                 context.getString(R.string.habit_not_found)
             )
+        } else {
+            errorView.setCharSequence(
+                R.id.label,
+                "setText",
+                "Widget error: ${e.javaClass.simpleName}: ${e.message}"
+            )
         }
         manager.updateAppWidget(widgetId, errorView)
     }
