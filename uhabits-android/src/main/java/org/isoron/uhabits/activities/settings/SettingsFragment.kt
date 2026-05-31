@@ -51,6 +51,7 @@ import org.isoron.platform.time.JavaLocalDateFormatter
 import org.isoron.uhabits.BuildConfig
 import org.isoron.uhabits.HabitsApplication
 import org.isoron.uhabits.R
+import org.isoron.uhabits.sync.DeviceIdManager
 import org.isoron.uhabits.sync.SupabaseAuthManager
 import org.isoron.uhabits.activities.habits.list.RESULT_BUG_REPORT
 import org.isoron.uhabits.activities.habits.list.RESULT_EXPORT_CSV
@@ -83,19 +84,33 @@ class SettingsFragment : PreferenceFragmentCompat(), OnSharedPreferenceChangeLis
                         .getResult(ApiException::class.java)
                     val idToken = account.idToken
                     if (idToken != null) {
+                        // Capture the app context before suspending so we never
+                        // touch the (possibly detached) fragment via requireContext()
+                        // after a network round-trip.
+                        val appCtx = requireContext().applicationContext
                         lifecycleScope.launch {
                             val authResult = withContext(Dispatchers.IO) {
                                 authManager?.signInWithGoogle(idToken)
                             } ?: return@launch
-                            authResult.fold(
-                                onSuccess = {
-                                    Toast.makeText(context, "Signed in as $it", Toast.LENGTH_SHORT).show()
-                                    updateAccountUI()
-                                },
-                                onFailure = {
-                                    Toast.makeText(context, "Sign-in failed: ${it.message}", Toast.LENGTH_LONG).show()
+                            if (authResult.isSuccess) {
+                                Toast.makeText(context, "Signed in as ${authResult.getOrNull()}", Toast.LENGTH_SHORT).show()
+                                updateAccountUI()
+                                // Adopt this device's pre-sign-in rows into the
+                                // account, then push everything so user_id is
+                                // stamped on all rows via the user_access path.
+                                val deviceId = DeviceIdManager(appCtx).deviceId
+                                withContext(Dispatchers.IO) {
+                                    authManager?.backfillUserId(deviceId)
                                 }
-                            )
+                                (appCtx as HabitsApplication)
+                                    .component.supabaseSyncService.forceFullSync()
+                            } else {
+                                Toast.makeText(
+                                    context,
+                                    "Sign-in failed: ${authResult.exceptionOrNull()?.message}",
+                                    Toast.LENGTH_LONG
+                                ).show()
+                            }
                         }
                     }
                 } catch (e: ApiException) {

@@ -61,13 +61,28 @@ class SupabaseAuthManager(
     val accessToken: String?
         get() = prefs.getString("access_token", null)
 
+    /**
+     * The signed-in user's id, but ONLY when a valid session token is
+     * available. Returns null if not signed in or if the token refresh
+     * failed (in which case requests fall back to anon + device_id, and
+     * rows must NOT be stamped with a stale user_id). This keeps the
+     * "row has user_id" invariant in lockstep with "request uses Bearer JWT".
+     */
+    fun activeUserId(): String? {
+        return if (refreshTokenIfNeeded() != null) prefs.getString("user_id", null) else null
+    }
+
     @Synchronized
     fun refreshTokenIfNeeded(): String? {
-        val token = prefs.getString("access_token", null) ?: return null
+        val token = prefs.getString("access_token", null)
         val expiresAt = prefs.getLong("expires_at", 0)
         val now = System.currentTimeMillis() / 1000
-        if (now < expiresAt - 60) return token
-        // Token expired or about to expire, refresh
+        // Valid, non-expiring access token: use it as-is.
+        if (token != null && now < expiresAt - 60) return token
+        // Otherwise (expired, OR access_token previously cleared after a failed
+        // refresh) try to recover the session from the refresh token. This lets
+        // the app self-heal on the next request/app-open instead of getting
+        // stuck in anonymous device-fallback mode until a full re-sign-in.
         val refreshToken = prefs.getString("refresh_token", null) ?: return null
         return try {
             val body = mapper.writeValueAsString(mapOf("refresh_token" to refreshToken))
@@ -151,6 +166,40 @@ class SupabaseAuthManager(
                 Result.failure(Exception("Failed ($code)"))
             }
         } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    /**
+     * Adopt this device's pre-sign-in rows (user_id IS NULL) into the
+     * authenticated user's account. Called once right after sign-in so that
+     * data created while offline/anonymous becomes owned by the user and is
+     * reachable through the user_access / agent_access RLS policies.
+     */
+    fun backfillUserId(deviceId: String): Result<String> {
+        val accessTk = refreshTokenIfNeeded()
+            ?: return Result.failure(Exception("Not signed in"))
+        return try {
+            val body = mapper.writeValueAsString(mapOf("p_device_id" to deviceId))
+            val url = "${BuildConfig.SUPABASE_URL}/rest/v1/rpc/backfill_user_id"
+            val conn = URL(url).openConnection() as HttpURLConnection
+            conn.requestMethod = "POST"
+            conn.setRequestProperty("apikey", BuildConfig.SUPABASE_ANON_KEY)
+            conn.setRequestProperty("Authorization", "Bearer $accessTk")
+            conn.setRequestProperty("Content-Type", "application/json")
+            conn.doOutput = true
+            OutputStreamWriter(conn.outputStream).use { it.write(body) }
+            val code = conn.responseCode
+            if (code in 200..299) {
+                val response = BufferedReader(InputStreamReader(conn.inputStream)).use { it.readText() }
+                Result.success(response)
+            } else {
+                val err = conn.errorStream?.let { BufferedReader(InputStreamReader(it)).use { r -> r.readText() } } ?: ""
+                Log.w(TAG, "Backfill failed: $code $err")
+                Result.failure(Exception("Failed ($code)"))
+            }
+        } catch (e: Exception) {
+            Log.w(TAG, "Backfill error", e)
             Result.failure(e)
         }
     }

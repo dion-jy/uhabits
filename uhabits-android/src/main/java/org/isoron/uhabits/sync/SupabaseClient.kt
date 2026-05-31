@@ -142,21 +142,34 @@ class SupabaseClient(
     suspend fun upsertHabits(habits: List<Habit>) {
         if (habits.isEmpty()) return
         try {
-            restPost("habits", habits.map(::habitToMap), upsert = true)
+            val uid = authManager.activeUserId()
+            restPost("habits", habits.map { withUser(habitToMap(it), uid) }, upsert = true)
         } catch (e: Exception) {
             Log.w(TAG, "Failed to upsert habits", e)
         }
     }
 
+    /**
+     * Add user_id to a row payload ONLY when a valid session is active (uid
+     * non-null), so the row matches the user_access RLS policy and is owned by
+     * the signed-in user. When not signed in the key is omitted entirely (NOT
+     * set to null), so an offline re-sync never clears an already-owned row's
+     * user_id, and new rows fall through to the device-legacy path with
+     * user_id IS NULL. uid is resolved ONCE per batch by the caller to avoid a
+     * token-refresh check per row.
+     */
+    private fun withUser(row: Map<String, Any?>, uid: String?): Map<String, Any?> =
+        if (uid != null) row + ("user_id" to uid) else row
+
     suspend fun upsertEntry(habitId: Long, timestamp: Long, value: Int, notes: String) {
         try {
-            restPost("entries", mapOf(
+            restPost("entries", withUser(mapOf(
                 "device_id" to deviceId,
                 "habit_id" to habitId,
                 "timestamp" to timestamp,
                 "value" to value,
                 "notes" to notes
-            ), upsert = true)
+            ), authManager.activeUserId()), upsert = true)
         } catch (e: Exception) {
             Log.w(TAG, "Failed to upsert entry", e)
         }
@@ -165,7 +178,8 @@ class SupabaseClient(
     suspend fun upsertEntries(entries: List<Map<String, Any?>>) {
         if (entries.isEmpty()) return
         try {
-            restPost("entries", entries.map { it + ("device_id" to deviceId) }, upsert = true)
+            val uid = authManager.activeUserId()
+            restPost("entries", entries.map { withUser(it + ("device_id" to deviceId), uid) }, upsert = true)
         } catch (e: Exception) {
             Log.w(TAG, "Failed to upsert entries batch", e)
         }
@@ -200,14 +214,14 @@ class SupabaseClient(
 
     suspend fun sendHeartbeat(habitCount: Int, entryCount: Int, lastEntryMs: Long) {
         try {
-            restPost("device_heartbeat", mapOf(
+            restPost("device_heartbeat", withUser(mapOf(
                 "device_id" to deviceId,
                 "habit_count" to habitCount,
                 "entry_count" to entryCount,
                 "last_entry_ms" to lastEntryMs,
                 "app_version" to org.isoron.uhabits.BuildConfig.VERSION_NAME,
                 "last_seen_at" to Instant.now().toString()
-            ), upsert = true)
+            ), authManager.activeUserId()), upsert = true)
         } catch (e: Exception) {
             Log.w(TAG, "Failed to send heartbeat", e)
         }
