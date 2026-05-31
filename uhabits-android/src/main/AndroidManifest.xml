@@ -41,7 +41,7 @@
             android:exported="true">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value=".activities.habits.list.ListHabitsActivity" />
+                android:value="org.isoron.uhabits.activities.habits.list.ListHabitsActivity" />
         </activity>
 
         <meta-data
@@ -59,7 +59,7 @@
             android:exported="true"
             android:label="@string/main_activity_title"
             android:launchMode="singleTop"
-            android:targetActivity=".activities.habits.list.ListHabitsActivity">
+            android:targetActivity="org.isoron.uhabits.activities.habits.list.ListHabitsActivity">
             <intent-filter android:label="@string/main_activity_title">
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
@@ -71,7 +71,7 @@
             android:label="@string/title_activity_show_habit">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value=".activities.habits.list.ListHabitsActivity" />
+                android:value="org.isoron.uhabits.activities.habits.list.ListHabitsActivity" />
         </activity>
 
         <activity
@@ -79,7 +79,7 @@
             android:label="@string/settings">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value=".activities.habits.list.ListHabitsActivity" />
+                android:value="org.isoron.uhabits.activities.habits.list.ListHabitsActivity" />
         </activity>
 
         <activity
@@ -119,7 +119,7 @@
             android:label="@string/about">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value=".activities.habits.list.ListHabitsActivity" />
+                android:value="org.isoron.uhabits.activities.habits.list.ListHabitsActivity" />
         </activity>
 
         <activity
