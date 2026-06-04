@@ -29,18 +29,25 @@ import org.isoron.uhabits.core.AppScope
 import org.isoron.platform.time.LocalDate
 import org.isoron.uhabits.core.commands.Command
 import org.isoron.uhabits.core.commands.CommandRunner
+import org.isoron.uhabits.core.commands.CreateHabitCommand
 import org.isoron.uhabits.core.commands.CreateRepetitionCommand
 import org.isoron.uhabits.core.commands.DeleteHabitsCommand
 import org.isoron.uhabits.core.commands.EditHabitCommand
 import org.isoron.uhabits.core.models.Entry
+import org.isoron.uhabits.core.models.Frequency
 import org.isoron.uhabits.core.models.Habit
 import org.isoron.uhabits.core.models.HabitList
+import org.isoron.uhabits.core.models.HabitType
+import org.isoron.uhabits.core.models.ModelFactory
+import org.isoron.uhabits.core.models.NumericalHabitType
+import org.isoron.uhabits.core.models.PaletteColor
 
 @Inject
 @AppScope
 class SupabaseSyncService(
     private val commandRunner: CommandRunner,
     private val habitList: HabitList,
+    private val modelFactory: ModelFactory,
     private val supabaseClient: SupabaseClient
 ) : CommandRunner.Listener {
 
@@ -109,6 +116,122 @@ class SupabaseSyncService(
         if (!supabaseClient.isConfigured) return
         lastFullSyncMs = 0
         fullSync()
+    }
+
+    data class RestoreResult(
+        val habitsCreated: Int,
+        val entriesAdded: Int,
+        val error: String?
+    )
+
+    /**
+     * Pull the signed-in user's habits and entries back from the cloud into the
+     * local database. Habits are deduplicated by uuid (the only identity that
+     * survives reinstalls — the local id and device_id both change), so the
+     * device_id-fragmented cloud rows collapse into one local habit each.
+     * Existing local habits (matched by uuid) are left untouched; only missing
+     * ones are created. Entries are remapped from their (device_id, old habit
+     * id) back to the local habit via uuid and merged by date.
+     */
+    suspend fun restoreFromCloud(): RestoreResult {
+        if (!supabaseClient.isConfigured) return RestoreResult(0, 0, "Not configured")
+        val habitRows = supabaseClient.fetchUserHabits()
+        if (habitRows.isEmpty()) {
+            return RestoreResult(0, 0, "No cloud habits found (sign in first?)")
+        }
+
+        isPulling = true
+        try {
+            // (device_id|oldId) -> uuid, to remap entries back to habits.
+            val keyToUuid = HashMap<String, String>()
+            // One representative row per uuid (prefer non-archived).
+            val repByUuid = LinkedHashMap<String, Map<String, Any?>>()
+            for (row in habitRows) {
+                val uuid = row["uuid"] as? String ?: continue
+                val dev = row["device_id"]?.toString() ?: ""
+                val oldId = row["id"]?.toString() ?: ""
+                keyToUuid["$dev|$oldId"] = uuid
+                val existing = repByUuid[uuid]
+                if (existing == null || isBetterRep(row, existing)) repByUuid[uuid] = row
+            }
+
+            var created = 0
+            for ((uuid, row) in repByUuid) {
+                if (habitList.getByUUID(uuid) != null) continue
+                val habit = modelFactory.buildHabit()
+                habit.uuid = uuid
+                habit.name = row["name"] as? String ?: ""
+                habit.description = row["description"] as? String ?: ""
+                habit.question = row["question"] as? String ?: ""
+                habit.frequency = Frequency(intOf(row["freq_num"], 1), intOf(row["freq_den"], 1))
+                habit.color = PaletteColor(intOf(row["color"], 8))
+                habit.type = HabitType.fromInt(intOf(row["type"], 0))
+                habit.targetValue = doubleOf(row["target_value"])
+                habit.targetType = NumericalHabitType.fromInt(intOf(row["target_type"], 0))
+                habit.unit = row["unit"] as? String ?: ""
+                habit.position = intOf(row["position"], 0)
+                habit.isArchived = intOf(row["archived"], 0) != 0
+                CreateHabitCommand(modelFactory, habitList, habit).run()
+                created++
+            }
+
+            // Entries: remap (device_id, old habit id) -> uuid -> local habit.
+            val entryRows = supabaseClient.fetchUserEntries()
+            var addedEntries = 0
+            val touched = HashSet<Long>()
+            for (er in entryRows) {
+                val dev = er["device_id"]?.toString() ?: ""
+                val oldHabitId = er["habit_id"]?.toString() ?: continue
+                val uuid = keyToUuid["$dev|$oldHabitId"] ?: continue
+                val habit = habitList.getByUUID(uuid) ?: continue
+                val ts = longOf(er["timestamp"]) ?: continue
+                val date = LocalDate.fromUnixTime(ts)
+                val value = intOf(er["value"], 0)
+                val notes = er["notes"] as? String ?: ""
+                // Only write when the cloud copy differs from what's already
+                // local — keeps repeated restores cheap, avoids clobbering
+                // matching local entries, and makes the count net-of-changes.
+                val existing = habit.originalEntries.get(date)
+                if (existing.value != value || existing.notes != notes) {
+                    habit.originalEntries.add(Entry(date, value, notes))
+                    habit.id?.let { touched.add(it) }
+                    addedEntries++
+                }
+            }
+            for (id in touched) habitList.getById(id)?.recompute()
+            habitList.resort()
+            return RestoreResult(created, addedEntries, null)
+        } catch (e: Exception) {
+            Log.w(TAG, "Restore failed", e)
+            return RestoreResult(0, 0, e.message ?: "unknown error")
+        } finally {
+            isPulling = false
+        }
+    }
+
+    // Prefer a non-archived row; otherwise keep whichever we saw first.
+    private fun isBetterRep(row: Map<String, Any?>, current: Map<String, Any?>): Boolean {
+        val rowArchived = intOf(row["archived"], 0) != 0
+        val curArchived = intOf(current["archived"], 0) != 0
+        return curArchived && !rowArchived
+    }
+
+    private fun intOf(v: Any?, default: Int): Int = when (v) {
+        is Number -> v.toInt()
+        is String -> v.toIntOrNull() ?: default
+        else -> default
+    }
+
+    private fun doubleOf(v: Any?): Double = when (v) {
+        is Number -> v.toDouble()
+        is String -> v.toDoubleOrNull() ?: 0.0
+        else -> 0.0
+    }
+
+    private fun longOf(v: Any?): Long? = when (v) {
+        is Number -> v.toLong()
+        is String -> v.toLongOrNull()
+        else -> null
     }
 
     fun fullSync() {

@@ -138,6 +138,12 @@
                 app:iconSpaceReserved="false" />
 
         <Preference
+                android:key="restoreFromCloud"
+                android:title="Restore from cloud"
+                android:summary="Pull your habits and entries back from the cloud"
+                app:iconSpaceReserved="false" />
+
+        <Preference
                 android:key="signOut"
                 android:title="Sign out"
                 android:visible="false"

@@ -206,6 +206,22 @@ class SettingsFragment : PreferenceFragmentCompat(), OnSharedPreferenceChangeLis
                 Toast.makeText(context, "Syncing...", Toast.LENGTH_SHORT).show()
                 return true
             }
+            "restoreFromCloud" -> {
+                val app = requireContext().applicationContext as HabitsApplication
+                Toast.makeText(context, "Restoring from cloud...", Toast.LENGTH_SHORT).show()
+                lifecycleScope.launch {
+                    val result = withContext(Dispatchers.IO) {
+                        app.component.supabaseSyncService.restoreFromCloud()
+                    }
+                    val msg = if (result.error != null) {
+                        "Restore failed: ${result.error}"
+                    } else {
+                        "Restored ${result.habitsCreated} habits, ${result.entriesAdded} entries"
+                    }
+                    Toast.makeText(context, msg, Toast.LENGTH_LONG).show()
+                }
+                return true
+            }
             "signOut" -> {
                 authManager?.signOut()
                 updateAccountUI()

@@ -51,8 +51,8 @@ android {
     }
 
     defaultConfig {
-        versionCode = 20303
-        versionName = "2.3.3"
+        versionCode = 20304
+        versionName = "2.3.4"
         minSdk = 28
         targetSdk = 36
         applicationId = "org.isoron.uhabits.loop"

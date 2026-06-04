@@ -259,6 +259,55 @@ class SupabaseClient(
         }
     }
 
+    /**
+     * All habit rows owned by the signed-in user, across every device_id.
+     * Relies on the user_access RLS policy (Bearer JWT) to scope to the user,
+     * so this is only meaningful when signed in. Used by restore-from-cloud.
+     */
+    suspend fun fetchUserHabits(): List<Map<String, Any?>> {
+        return try {
+            val response = restGet("habits?order=position.asc&limit=10000")
+            @Suppress("UNCHECKED_CAST")
+            mapper.readValue(
+                response,
+                mapper.typeFactory.constructCollectionType(List::class.java, Map::class.java)
+            ) as List<Map<String, Any?>>
+        } catch (e: Exception) {
+            Log.w(TAG, "Failed to fetch user habits", e)
+            emptyList()
+        }
+    }
+
+    /**
+     * All entry rows owned by the signed-in user, across every device_id,
+     * paginated past PostgREST's max-rows cap. Each row carries device_id +
+     * habit_id so the caller can map it back to a habit by (device_id, id).
+     */
+    suspend fun fetchUserEntries(): List<Map<String, Any?>> {
+        val all = mutableListOf<Map<String, Any?>>()
+        val page = 1000
+        var offset = 0
+        try {
+            while (true) {
+                val response = restGet(
+                    "entries?select=device_id,habit_id,timestamp,value,notes" +
+                        "&order=timestamp.desc&limit=$page&offset=$offset"
+                )
+                @Suppress("UNCHECKED_CAST")
+                val chunk = mapper.readValue(
+                    response,
+                    mapper.typeFactory.constructCollectionType(List::class.java, Map::class.java)
+                ) as List<Map<String, Any?>>
+                all.addAll(chunk)
+                if (chunk.size < page) break
+                offset += page
+            }
+        } catch (e: Exception) {
+            Log.w(TAG, "Failed to fetch user entries", e)
+        }
+        return all
+    }
+
     suspend fun fetchAgentEntries(): List<AgentEntry> {
         return try {
             val response = restGet("entries?source=eq.agent&order=synced_at.desc&limit=100")
