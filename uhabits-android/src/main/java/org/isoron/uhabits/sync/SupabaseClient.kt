@@ -143,7 +143,7 @@ class SupabaseClient(
         if (habits.isEmpty()) return
         try {
             val uid = authManager.activeUserId()
-            restPost("habits", habits.map { withUser(habitToMap(it), uid) }, upsert = true)
+            restPost("habits?on_conflict=uuid", habits.map { withUser(habitToMap(it), uid) }, upsert = true)
         } catch (e: Exception) {
             Log.w(TAG, "Failed to upsert habits", e)
         }
@@ -161,11 +161,12 @@ class SupabaseClient(
     private fun withUser(row: Map<String, Any?>, uid: String?): Map<String, Any?> =
         if (uid != null) row + ("user_id" to uid) else row
 
-    suspend fun upsertEntry(habitId: Long, timestamp: Long, value: Int, notes: String) {
+    suspend fun upsertEntry(habitId: Long, habitUuid: String?, timestamp: Long, value: Int, notes: String) {
         try {
-            restPost("entries", withUser(mapOf(
+            restPost("entries?on_conflict=habit_uuid,timestamp", withUser(mapOf(
                 "device_id" to deviceId,
                 "habit_id" to habitId,
+                "habit_uuid" to habitUuid,
                 "timestamp" to timestamp,
                 "value" to value,
                 "notes" to notes
@@ -179,7 +180,7 @@ class SupabaseClient(
         if (entries.isEmpty()) return
         try {
             val uid = authManager.activeUserId()
-            restPost("entries", entries.map { withUser(it + ("device_id" to deviceId), uid) }, upsert = true)
+            restPost("entries?on_conflict=habit_uuid,timestamp", entries.map { withUser(it + ("device_id" to deviceId), uid) }, upsert = true)
         } catch (e: Exception) {
             Log.w(TAG, "Failed to upsert entries batch", e)
         }
@@ -290,7 +291,7 @@ class SupabaseClient(
         try {
             while (true) {
                 val response = restGet(
-                    "entries?select=device_id,habit_id,timestamp,value,notes" +
+                    "entries?select=device_id,habit_id,habit_uuid,timestamp,value,notes" +
                         "&order=timestamp.desc&limit=$page&offset=$offset"
                 )
                 @Suppress("UNCHECKED_CAST")
@@ -351,6 +352,7 @@ class SupabaseClient(
 data class AgentEntry(
     val id: Long = 0,
     val habit_id: Long = 0,
+    val habit_uuid: String? = null,
     val timestamp: Long = 0,
     val value: Int = 0,
     val notes: String = ""

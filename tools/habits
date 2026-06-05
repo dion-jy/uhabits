@@ -120,7 +120,7 @@ def _user_filter():
 
 
 def _resolve_habit(name):
-    habits = _get(f"habits?{_user_filter()}&select=id,name,device_id")
+    habits = _get(f"habits?{_user_filter()}&select=id,name,device_id,uuid")
     # Exact match first
     for h in habits:
         if h["name"].lower() == name.lower():
@@ -217,12 +217,12 @@ def cmd_entries(args):
     if not entries:
         print(f"No entries in last {days} days.")
         return
-    habits = _get(f"habits?{uf}&select=id,name")
-    name_map = {h["id"]: h["name"] for h in habits}
+    habits = _get(f"habits?{uf}&select=uuid,name")
+    name_map = {h["uuid"]: h["name"] for h in habits}
     val_map = {2: "YES", 1: "AUTO", 0: "NO", 3: "SKIP"}
     for e in entries:
         dt = datetime.fromtimestamp(e["timestamp"] / 1000, tz=timezone.utc)
-        name = name_map.get(e["habit_id"], f"id={e['habit_id']}")
+        name = name_map.get(e.get("habit_uuid"), f"id={e['habit_id']}")
         val = val_map.get(e["value"], str(e["value"]))
         notes = f" — {e['notes']}" if e.get("notes") else ""
         src = " [agent]" if e.get("source") == "agent" else ""
@@ -240,7 +240,7 @@ def cmd_summary(args):
 
     by_habit = {}
     for e in entries:
-        by_habit.setdefault(e["habit_id"], []).append(e)
+        by_habit.setdefault(e.get("habit_uuid"), []).append(e)
 
     now_ms = int(datetime.now(timezone.utc).timestamp() * 1000)
     day_ms = 86400 * 1000
@@ -251,7 +251,7 @@ def cmd_summary(args):
     for h in habits:
         if h["archived"]:
             continue
-        es = by_habit.get(h["id"], [])
+        es = by_habit.get(h["uuid"], [])
         completed = [e for e in es if e["value"] in (1, 2)]
         last_7 = sum(1 for e in completed if now_ms - e["timestamp"] < 7 * day_ms)
         last_30 = sum(1 for e in completed if now_ms - e["timestamp"] < 30 * day_ms)
@@ -293,10 +293,11 @@ def cmd_check(args):
 
     user = _require_user()
     _post(
-        "entries?on_conflict=device_id,habit_id,timestamp",
+        "entries?on_conflict=habit_uuid,timestamp",
         {
             "device_id": habit["device_id"],
             "habit_id": habit["id"],
+            "habit_uuid": habit["uuid"],
             "timestamp": timestamp_ms,
             "value": value,
             "notes": args.notes or "",

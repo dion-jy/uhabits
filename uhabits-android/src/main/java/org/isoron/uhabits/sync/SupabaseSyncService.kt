@@ -88,6 +88,7 @@ class SupabaseSyncService(
                         if (habit.id != null) {
                             supabaseClient.upsertEntry(
                                 habitId = habit.id!!,
+                                habitUuid = habit.uuid,
                                 timestamp = command.date.unixTime,
                                 value = command.value,
                                 notes = command.notes
@@ -180,9 +181,11 @@ class SupabaseSyncService(
             var addedEntries = 0
             val touched = HashSet<Long>()
             for (er in entryRows) {
-                val dev = er["device_id"]?.toString() ?: ""
-                val oldHabitId = er["habit_id"]?.toString() ?: continue
-                val uuid = keyToUuid["$dev|$oldHabitId"] ?: continue
+                // Prefer the entry's own habit_uuid; fall back to remapping the
+                // legacy (device_id, old habit id) for rows predating uuid.
+                val uuid = (er["habit_uuid"] as? String)
+                    ?: keyToUuid["${er["device_id"]?.toString() ?: ""}|${er["habit_id"]?.toString() ?: ""}"]
+                    ?: continue
                 val habit = habitList.getByUUID(uuid) ?: continue
                 val ts = longOf(er["timestamp"]) ?: continue
                 val date = LocalDate.fromUnixTime(ts)
@@ -272,6 +275,7 @@ class SupabaseSyncService(
                 entries.add(
                     mapOf(
                         "habit_id" to habitId,
+                        "habit_uuid" to habit.uuid,
                         "timestamp" to entry.date.unixTime,
                         "value" to entry.value,
                         "notes" to entry.notes
@@ -288,7 +292,10 @@ class SupabaseSyncService(
         isPulling = true
         try {
             for (entry in agentEntries) {
-                val habit = habitList.getById(entry.habit_id) ?: continue
+                // Prefer the portable uuid; fall back to the legacy local id.
+                val habit = entry.habit_uuid?.let { habitList.getByUUID(it) }
+                    ?: habitList.getById(entry.habit_id)
+                    ?: continue
                 val date = LocalDate.fromUnixTime(entry.timestamp)
                 habit.originalEntries.add(Entry(date, entry.value, entry.notes))
                 habit.recompute()
