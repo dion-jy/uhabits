@@ -144,8 +144,22 @@
                 app:iconSpaceReserved="false" />
 
         <Preference
+                android:key="unlinkAgent"
+                android:title="Unlink agent"
+                android:summary="Revoke your agent's access to your data"
+                android:visible="false"
+                app:iconSpaceReserved="false" />
+
+        <Preference
                 android:key="signOut"
                 android:title="Sign out"
+                android:visible="false"
+                app:iconSpaceReserved="false" />
+
+        <Preference
+                android:key="deleteAccount"
+                android:title="Delete account &amp; cloud data"
+                android:summary="Permanently delete your cloud account and data"
                 android:visible="false"
                 app:iconSpaceReserved="false" />
 

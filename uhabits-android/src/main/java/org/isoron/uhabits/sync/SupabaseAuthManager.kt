@@ -271,6 +271,58 @@ class SupabaseAuthManager(
         }
     }
 
+    /** Revoke all of this user's linked agents by clearing their secret hashes. */
+    fun unlinkAgents(): Result<Unit> {
+        val accessTk = refreshTokenIfNeeded()
+            ?: return Result.failure(Exception("Not signed in"))
+        val userId = prefs.getString("user_id", null)
+            ?: return Result.failure(Exception("No user"))
+        return try {
+            val url = "${BuildConfig.SUPABASE_URL}/rest/v1/device_links?user_id=eq.$userId&agent_secret_hash=not.is.null"
+            val conn = URL(url).openConnection() as HttpURLConnection
+            conn.requestMethod = "PATCH"
+            conn.setRequestProperty("apikey", BuildConfig.SUPABASE_ANON_KEY)
+            conn.setRequestProperty("Authorization", "Bearer $accessTk")
+            conn.setRequestProperty("Content-Type", "application/json")
+            conn.doOutput = true
+            OutputStreamWriter(conn.outputStream).use {
+                it.write(mapper.writeValueAsString(mapOf("agent_secret_hash" to null)))
+            }
+            val code = conn.responseCode
+            conn.disconnect()
+            if (code in 200..299) Result.success(Unit)
+            else Result.failure(Exception("Failed ($code)"))
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    /** Delete the signed-in user's cloud account + all data, then sign out locally. */
+    fun deleteAccount(): Result<Unit> {
+        val accessTk = refreshTokenIfNeeded()
+            ?: return Result.failure(Exception("Not signed in"))
+        return try {
+            val url = "${BuildConfig.SUPABASE_URL}/rest/v1/rpc/delete_account"
+            val conn = URL(url).openConnection() as HttpURLConnection
+            conn.requestMethod = "POST"
+            conn.setRequestProperty("apikey", BuildConfig.SUPABASE_ANON_KEY)
+            conn.setRequestProperty("Authorization", "Bearer $accessTk")
+            conn.setRequestProperty("Content-Type", "application/json")
+            conn.doOutput = true
+            OutputStreamWriter(conn.outputStream).use { it.write("{}") }
+            val code = conn.responseCode
+            conn.disconnect()
+            if (code in 200..299) {
+                signOut()
+                Result.success(Unit)
+            } else {
+                Result.failure(Exception("Failed ($code)"))
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
     fun signOut() {
         prefs.edit().clear().apply()
     }

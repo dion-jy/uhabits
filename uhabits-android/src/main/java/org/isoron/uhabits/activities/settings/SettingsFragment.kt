@@ -228,6 +228,23 @@ class SettingsFragment : PreferenceFragmentCompat(), OnSharedPreferenceChangeLis
                 Toast.makeText(context, "Signed out", Toast.LENGTH_SHORT).show()
                 return true
             }
+            "unlinkAgent" -> {
+                Toast.makeText(context, "Unlinking agent...", Toast.LENGTH_SHORT).show()
+                lifecycleScope.launch {
+                    val result = withContext(Dispatchers.IO) { authManager?.unlinkAgents() }
+                    val ok = result?.isSuccess == true
+                    Toast.makeText(
+                        context,
+                        if (ok) "Agent unlinked" else "Unlink failed",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
+                return true
+            }
+            "deleteAccount" -> {
+                confirmDeleteAccount()
+                return true
+            }
             "rateApp" -> {
                 val intent = Intent(Intent.ACTION_VIEW, Uri.parse(getString(R.string.playStoreURL)))
                 activity?.startActivitySafely(intent)
@@ -404,6 +421,31 @@ class SettingsFragment : PreferenceFragmentCompat(), OnSharedPreferenceChangeLis
         }
     }
 
+    private fun confirmDeleteAccount() {
+        AlertDialog.Builder(requireContext())
+            .setTitle("Delete account & cloud data")
+            .setMessage(
+                "This permanently deletes your cloud account and all habits, " +
+                    "entries, and agent links stored in the cloud. Habits on this " +
+                    "device are not removed. This cannot be undone."
+            )
+            .setPositiveButton("Delete") { _, _ ->
+                Toast.makeText(context, "Deleting account...", Toast.LENGTH_SHORT).show()
+                lifecycleScope.launch {
+                    val result = withContext(Dispatchers.IO) { authManager?.deleteAccount() }
+                    val ok = result?.isSuccess == true
+                    Toast.makeText(
+                        context,
+                        if (ok) "Account deleted" else "Delete failed",
+                        Toast.LENGTH_LONG
+                    ).show()
+                    updateAccountUI()
+                }
+            }
+            .setNegativeButton("Cancel", null)
+            .show()
+    }
+
     private fun updateAccountUI() {
         val am = authManager ?: return
         val signedIn = am.isSignedIn
@@ -411,6 +453,8 @@ class SettingsFragment : PreferenceFragmentCompat(), OnSharedPreferenceChangeLis
         findPreference("generateAgentCode").isEnabled = signedIn
         findPreference("generateAgentCode").summary = if (signedIn) "Generate a code for your agent" else "Sign in first"
         findPreference("signOut").isVisible = signedIn
+        findPreference("unlinkAgent").isVisible = signedIn
+        findPreference("deleteAccount").isVisible = signedIn
         if (signedIn) {
             findPreference("signOut").summary = am.userEmail ?: ""
         }
