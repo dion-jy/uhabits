@@ -1,5 +1,23 @@
 # Copyright Notices
 
+## Looply — derivative work attribution
+
+Looply is a derivative work of **Loop Habit Tracker**.
+
+    Loop Habit Tracker
+    Copyright (C) 2016-2025 Álinson Santos Xavier and contributors
+    Source: https://github.com/iSoron/uhabits
+    Licensed under the GNU General Public License v3.0 or later.
+
+Looply adds a cloud-sync substrate (Supabase) so the user's own AI agent can
+read and write their habit data. Looply remains free software under the same
+**GNU General Public License v3.0 or later**; the complete corresponding source
+for every released build is published at https://github.com/dion-jy/uhabits
+(each release is git-tagged to match its binary). Modifications to upstream
+files retain their original copyright headers.
+
+This product also includes the third-party software listed below.
+
 ## ActiveAndroid
 
 <https://github.com/pardom/ActiveAndroid>

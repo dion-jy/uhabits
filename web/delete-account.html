@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Delete your Looply account &amp; data</title>
+  <style>
+    :root { color-scheme: light dark; }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+                   Helvetica, Arial, sans-serif;
+      line-height: 1.6;
+      color: #1a1a1a;
+      background: #f5f6f8;
+    }
+    .wrap {
+      max-width: 680px;
+      margin: 0 auto;
+      padding: 40px 20px 80px;
+    }
+    .card {
+      background: #fff;
+      border: 1px solid #e3e5e9;
+      border-radius: 14px;
+      padding: 32px;
+    }
+    h1 { font-size: 1.6rem; margin: 0 0 4px; }
+    .sub { color: #666; margin: 0 0 24px; font-size: 0.95rem; }
+    h2 { font-size: 1.1rem; margin: 28px 0 8px; }
+    ul { padding-left: 20px; margin: 8px 0; }
+    li { margin: 4px 0; }
+    code {
+      background: #eef0f3;
+      padding: 1px 6px;
+      border-radius: 5px;
+      font-size: 0.9em;
+    }
+    .btn {
+      display: inline-block;
+      margin: 12px 0 4px;
+      padding: 13px 22px;
+      background: #2f6df6;
+      color: #fff;
+      text-decoration: none;
+      border-radius: 10px;
+      font-weight: 600;
+    }
+    .btn:hover { background: #2257d6; }
+    .note {
+      background: #fff8e6;
+      border: 1px solid #f3e3b3;
+      border-radius: 10px;
+      padding: 14px 16px;
+      font-size: 0.92rem;
+      margin: 20px 0;
+    }
+    footer {
+      margin-top: 28px;
+      font-size: 0.85rem;
+      color: #777;
+    }
+    a { color: #2257d6; }
+    @media (prefers-color-scheme: dark) {
+      body { color: #e8e8e8; background: #15171b; }
+      .card { background: #1e2127; border-color: #2c3038; }
+      .sub, footer { color: #9aa0a8; }
+      code { background: #2a2e36; }
+      .note { background: #2a2616; border-color: #4a431f; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="card">
+      <h1>Delete your Looply account &amp; data</h1>
+      <p class="sub">Looply &middot; AI-connected habit tracker</p>
+
+      <p>
+        You can request deletion of your Looply account and all of your
+        cloud-stored data here, <strong>without reinstalling the app</strong>.
+      </p>
+
+      <h2>What gets deleted</h2>
+      <p>On a verified request, we remove the records tied to your account from
+        our cloud database, including:</p>
+      <ul>
+        <li><strong>Habits</strong> (<code>habits</code>) &mdash; your habit
+          definitions: name, notes, question, color, schedule, target, etc.</li>
+        <li><strong>Check-in entries</strong> (<code>entries</code>) &mdash;
+          your logged completions: timestamps, values, and notes.</li>
+        <li><strong>Coaching messages</strong> (<code>coaching</code>) &mdash;
+          nudges and messages from your authorized AI agent.</li>
+        <li><strong>Device links &amp; agent tokens</strong>
+          (<code>device_links</code>) &mdash; the records that pair your
+          devices and AI agent to your account.</li>
+        <li><strong>App heartbeat</strong> (<code>device_heartbeat</code>)
+          &mdash; the sync-status record for your device(s).</li>
+        <li><strong>Your account</strong> &mdash; your authentication user
+          record (Google email + user ID).</li>
+      </ul>
+
+      <h2>How to request deletion</h2>
+      <p>
+        Send your request using the button below. Please send it
+        <strong>from the same Google account email you signed in to Looply
+        with</strong>, so we can verify ownership.
+      </p>
+
+      <p>
+        <a class="btn"
+           href="mailto:[YOUR_CONTACT_EMAIL]?subject=Looply%20account%20and%20data%20deletion%20request&amp;body=I%20request%20deletion%20of%20my%20Looply%20account%20and%20all%20associated%20cloud%20data.%0A%0APlease%20send%20this%20email%20from%20the%20Google%20account%20you%20used%20to%20sign%20in%20to%20Looply.%0A%0AGoogle%20sign-in%20email%3A%20">
+          Request account &amp; data deletion
+        </a>
+      </p>
+      <p style="font-size:0.9rem;color:#777;">
+        Or email <a href="mailto:[YOUR_CONTACT_EMAIL]">[YOUR_CONTACT_EMAIL]</a>
+        directly with the subject &ldquo;Looply account and data deletion
+        request&rdquo;.
+      </p>
+
+      <div class="note">
+        <strong>Processing time:</strong> we complete verified deletion
+        requests within <strong>30 days</strong>. Copies may persist briefly in
+        routine encrypted backups before being overwritten on the normal backup
+        cycle.
+      </div>
+
+      <h2>Prefer to do it in the app?</h2>
+      <p>
+        You can also sign out and delete your data from within Looply.
+        Note that <strong>uninstalling the app removes only the data stored
+        locally on your device</strong> &mdash; it does not delete data already
+        stored in the cloud, so use this page (or the in-app delete option) to
+        remove cloud data.
+      </p>
+
+      <footer>
+        See our <a href="./privacy.md">Privacy Policy</a> for full details on
+        what we collect and why. Questions:
+        <a href="mailto:[YOUR_CONTACT_EMAIL]">[YOUR_CONTACT_EMAIL]</a>.
+      </footer>
+    </div>
+  </div>
+</body>
+</html>
