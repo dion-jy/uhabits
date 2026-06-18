@@ -204,6 +204,11 @@ class SupabaseAuthManager(
         }
     }
 
+    private fun sha256Hex(s: String): String {
+        val md = java.security.MessageDigest.getInstance("SHA-256")
+        return md.digest(s.toByteArray(Charsets.UTF_8)).joinToString("") { "%02x".format(it) }
+    }
+
     fun generateAgentCode(deviceId: String): Result<String> {
         val accessTk = refreshTokenIfNeeded()
             ?: return Result.failure(Exception("Not signed in"))
@@ -212,11 +217,15 @@ class SupabaseAuthManager(
             val bytes = ByteArray(32)
             random.nextBytes(bytes)
             val agentSecret = bytes.joinToString("") { "%02x".format(it) }
+            // Only the sha256 of the secret is stored server-side (migration-008).
+            // The plaintext secret is shown to the user once and never persisted
+            // here; the agent sends it in the header and the DB compares hashes.
+            val agentSecretHash = sha256Hex(agentSecret)
 
             // Invalidate old secrets for this user
             val userId = prefs.getString("user_id", null)
             try {
-                val patchUrl = "${BuildConfig.SUPABASE_URL}/rest/v1/device_links?user_id=eq.$userId&agent_secret=not.is.null"
+                val patchUrl = "${BuildConfig.SUPABASE_URL}/rest/v1/device_links?user_id=eq.$userId&agent_secret_hash=not.is.null"
                 val patchConn = URL(patchUrl).openConnection() as HttpURLConnection
                 patchConn.requestMethod = "PATCH"
                 patchConn.setRequestProperty("apikey", BuildConfig.SUPABASE_ANON_KEY)
@@ -224,7 +233,7 @@ class SupabaseAuthManager(
                 patchConn.setRequestProperty("Content-Type", "application/json")
                 patchConn.doOutput = true
                 OutputStreamWriter(patchConn.outputStream).use {
-                    it.write(mapper.writeValueAsString(mapOf("agent_secret" to null)))
+                    it.write(mapper.writeValueAsString(mapOf("agent_secret_hash" to null)))
                 }
                 patchConn.responseCode
                 patchConn.disconnect()
@@ -238,7 +247,7 @@ class SupabaseAuthManager(
                 "token" to token,
                 "instance_id" to deviceId,
                 "user_id" to userId,
-                "agent_secret" to agentSecret,
+                "agent_secret_hash" to agentSecretHash,
                 "used" to true
             ))
             val url = "${BuildConfig.SUPABASE_URL}/rest/v1/device_links"

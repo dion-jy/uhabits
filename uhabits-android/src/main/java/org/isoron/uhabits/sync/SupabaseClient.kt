@@ -65,8 +65,10 @@ class SupabaseClient(
         if (token != null) {
             conn.setRequestProperty("Authorization", "Bearer $token")
         } else {
+            // Not signed in: send only the anon key. The legacy x-device-id
+            // scoped path was removed in migration-008 (it allowed anonymous
+            // cross-user writes); without a JWT, RLS now returns nothing.
             conn.setRequestProperty("Authorization", "Bearer $SUPABASE_ANON_KEY")
-            conn.setRequestProperty("x-device-id", deviceId)
         }
         conn.connectTimeout = 10_000
         conn.readTimeout = 15_000
