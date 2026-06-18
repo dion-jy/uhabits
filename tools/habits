@@ -271,16 +271,22 @@ def cmd_summary(args):
 
 def cmd_check(args):
     value_str = args.value.upper()
-    date_str = args.date or datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    # Default to the LOCAL calendar day, not UTC. For a UTC+9 user the UTC date
+    # is "yesterday" between 00:00-09:00 local, which would log the check-in on
+    # the wrong day. The app keys entries by the local calendar date.
+    date_str = args.date or datetime.now().strftime("%Y-%m-%d")
 
     val_map = {"YES": 2, "NO": 0, "SKIP": 3}
     if value_str in val_map:
         value = val_map[value_str]
     else:
+        # Numeric habit: the app stores values in thousandths (value / 1000.0
+        # is compared against the target). "8" must be written as 8000, "2.5"
+        # as 2500 — otherwise it records 0.008 against the target.
         try:
-            value = int(value_str)
+            value = int(round(float(value_str) * 1000))
         except ValueError:
-            print(f"Invalid value: {value_str}. Use YES/NO/SKIP or integer.")
+            print(f"Invalid value: {value_str}. Use YES/NO/SKIP or a number.")
             return
 
     habit = _resolve_habit(args.habit)
