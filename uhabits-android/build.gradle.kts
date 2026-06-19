@@ -51,11 +51,11 @@ android {
     }
 
     defaultConfig {
-        versionCode = 20305
-        versionName = "2.3.5"
+        versionCode = 30000
+        versionName = "3.0.0"
         minSdk = 28
         targetSdk = 36
-        applicationId = "org.isoron.uhabits.loop"
+        applicationId = "app.looply"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
         buildConfigField(
