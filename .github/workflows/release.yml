@@ -1,0 +1,107 @@
+# Release build — produces a SIGNED AAB (for Play) + APK (for GitHub Releases).
+#
+# Triggers on a version tag (e.g. `git tag v3.0.0 && git push origin v3.0.0`)
+# or manually via the Actions tab (workflow_dispatch, once merged to the
+# default branch).
+#
+# ── ONE-TIME SETUP (the developer must do this) ────────────────────────────
+# 1. Create an upload keystore (kept secret, backed up off-machine):
+#      keytool -genkey -v -keystore upload.keystore -alias looply \
+#        -keyalg RSA -keysize 2048 -validity 10000
+# 2. Base64-encode it:   base64 -w0 upload.keystore   (macOS: base64 -i upload.keystore)
+# 3. Add these GitHub repo secrets (Settings → Secrets and variables → Actions):
+#      LOOP_KEYSTORE_BASE64   = the base64 string from step 2
+#      LOOP_KEY_ALIAS         = looply  (the alias from step 1)
+#      LOOP_KEY_PASSWORD      = the key password
+#      LOOP_STORE_PASSWORD    = the store password
+#      GOOGLE_WEB_CLIENT_ID   = (already set; used by build.yml)
+# 4. Enroll in Play App Signing when you first upload the AAB. Then copy the
+#    APP SIGNING key's SHA-1 from the Play Console into the app.looply Google
+#    OAuth Android client — testers receive Play-RESIGNED builds, so without
+#    that SHA-1 their Google sign-in fails.
+#
+# The signing config itself already lives in build.gradle.kts and activates
+# when LOOP_KEY_ALIAS is present in the environment.
+# ───────────────────────────────────────────────────────────────────────────
+
+name: Release
+
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+
+permissions:
+  contents: write          # needed to create the GitHub Release on tag
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Cache Gradle
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: gradle-
+
+      - name: Decode upload keystore
+        run: |
+          if [ -z "${{ secrets.LOOP_KEYSTORE_BASE64 }}" ]; then
+            echo "::error::LOOP_KEYSTORE_BASE64 secret is not set — see setup notes in release.yml"
+            exit 1
+          fi
+          echo "${{ secrets.LOOP_KEYSTORE_BASE64 }}" | base64 -d > "$RUNNER_TEMP/release.keystore"
+
+      - name: Build signed AAB + APK
+        env:
+          LOOP_KEY_STORE: ${{ runner.temp }}/release.keystore
+          LOOP_KEY_ALIAS: ${{ secrets.LOOP_KEY_ALIAS }}
+          LOOP_KEY_PASSWORD: ${{ secrets.LOOP_KEY_PASSWORD }}
+          LOOP_STORE_PASSWORD: ${{ secrets.LOOP_STORE_PASSWORD }}
+        run: |
+          ./gradlew :uhabits-android:bundleRelease :uhabits-android:assembleRelease \
+            --stacktrace -PGOOGLE_WEB_CLIENT_ID="${{ secrets.GOOGLE_WEB_CLIENT_ID }}"
+
+      - name: Upload AAB artifact (for Play Console)
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-aab
+          path: uhabits-android/build/outputs/bundle/release/*.aab
+          retention-days: 30
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-apk
+          path: uhabits-android/build/outputs/apk/release/*.apk
+          retention-days: 30
+
+      # On a version tag, publish a GitHub Release with the APK attached.
+      # Serves the FOSS/sideload audience and satisfies the GPL obligation that
+      # each released binary corresponds to tagged source.
+      - name: Publish GitHub Release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: uhabits-android/build/outputs/apk/release/*.apk
+          generate_release_notes: true
+          body: |
+            Looply ${{ github.ref_name }} — open-source habit tracker your AI agent can read and write.
+            Based on Loop Habit Tracker (© Álinson S. Xavier), GPL-3.0-or-later.
+            The Play Store build (AAB) is the same source at this tag.
