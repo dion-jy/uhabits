@@ -1,0 +1,170 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gothic+A1:wght@400;500;600;700;800&display=swap">
+  <style>
+    body { margin: 0; font-family: 'Gothic A1', 'Apple SD Gothic Neo', system-ui, sans-serif; -webkit-font-smoothing: antialiased; }
+    a { color: #1976D2; } a:hover { color: #12559A; }
+  </style>
+</helmet>
+
+<div style="width: 390px; height: 844px; background: #F1F1F4; color: #16171B; overflow: hidden; display: flex; flex-direction: column;">
+
+  <!-- header -->
+  <div style="padding: 60px 20px 0 20px; display: flex; align-items: center; justify-content: space-between;">
+    <div style="display: flex; flex-direction: column; gap: 2px;">
+      <div style="font-size: 11.5px; font-weight: 600; letter-spacing: 0.07em; color: #8A8D95;">9월 10일 목요일</div>
+      <div style="font-size: 24px; font-weight: 800; letter-spacing: -0.02em;">오늘</div>
+    </div>
+    <div style="display: flex; align-items: center; gap: 16px;">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#5C6068" stroke-width="1.9" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#5C6068" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="3.5"/><path d="M4.5 20a7.5 7.5 0 0115 0"/></svg>
+    </div>
+  </div>
+
+  <!-- hero -->
+  <div style="margin: 18px 20px 0 20px; padding: 20px 22px; background: #FFFFFF; border-radius: 20px; display: flex; align-items: center; gap: 22px;">
+    <div style="position: relative; width: 104px; height: 104px; flex-shrink: 0;">
+      <svg width="104" height="104" viewBox="0 0 104 104">
+        <circle cx="52" cy="52" r="45" fill="none" stroke="#EDEDF1" stroke-width="9"/>
+        <circle cx="52" cy="52" r="45" fill="none" stroke="#16171B" stroke-width="9" stroke-linecap="round" stroke-dasharray="282.7" stroke-dashoffset="141.4" transform="rotate(-90 52 52)"/>
+      </svg>
+      <div style="position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px;">
+        <div style="font-size: 25px; font-weight: 800; letter-spacing: -0.03em;">50<span style="font-size: 14px; font-weight: 700;">%</span></div>
+        <div style="font-size: 11px; font-weight: 600; color: #8A8D95;">3 / 6</div>
+      </div>
+    </div>
+    <div style="display: flex; flex-direction: column; gap: 13px; flex-grow: 1;">
+      <div style="display: flex; flex-direction: column; gap: 2px;">
+        <div style="font-size: 11px; font-weight: 600; letter-spacing: 0.06em; color: #8A8D95;">이번 주</div>
+        <div style="font-size: 17px; font-weight: 700; letter-spacing: -0.01em;">82% 달성</div>
+      </div>
+      <div style="height: 1px; background: #EDEDF1;"></div>
+      <div style="display: flex; flex-direction: column; gap: 2px;">
+        <div style="font-size: 11px; font-weight: 600; letter-spacing: 0.06em; color: #8A8D95;">최고 연속</div>
+        <div style="font-size: 17px; font-weight: 700; letter-spacing: -0.01em;">31일 · 명상</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- tiles -->
+  <div style="flex-grow: 1; margin: 14px 20px 0 20px; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; align-content: start;">
+
+    <div style="background: #FFFFFF; border-radius: 18px; padding: 16px; height: 132px; box-sizing: border-box; display: flex; flex-direction: column; justify-content: space-between; position: relative;">
+      <div style="position: relative; width: 42px; height: 42px;">
+        <svg width="42" height="42" viewBox="0 0 42 42">
+          <circle cx="21" cy="21" r="18" fill="none" stroke="#F7EADD" stroke-width="4.5"/>
+          <circle cx="21" cy="21" r="18" fill="none" stroke="#F57C00" stroke-width="4.5" stroke-linecap="round" stroke-dasharray="113.1" stroke-dashoffset="16.2" transform="rotate(-90 21 21)"/>
+        </svg>
+        <div style="position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#F57C00" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.8 4.8L19 7.4"/></svg>
+        </div>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 3px;">
+        <div style="font-size: 15px; font-weight: 700; letter-spacing: -0.01em;">아침 운동</div>
+        <div style="font-size: 11.5px; font-weight: 500; color: #8A8D95;">12일 연속 · 6/7</div>
+      </div>
+    </div>
+
+    <div style="background: #FFFFFF; border-radius: 18px; padding: 16px; height: 132px; box-sizing: border-box; display: flex; flex-direction: column; justify-content: space-between;">
+      <div style="position: relative; width: 42px; height: 42px;">
+        <svg width="42" height="42" viewBox="0 0 42 42">
+          <circle cx="21" cy="21" r="18" fill="none" stroke="#F2E7F5" stroke-width="4.5"/>
+          <circle cx="21" cy="21" r="18" fill="none" stroke="#8E24AA" stroke-width="4.5" stroke-linecap="round" stroke-dasharray="113.1" stroke-dashoffset="0" transform="rotate(-90 21 21)"/>
+        </svg>
+        <div style="position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8E24AA" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.8 4.8L19 7.4"/></svg>
+        </div>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 3px;">
+        <div style="font-size: 15px; font-weight: 700; letter-spacing: -0.01em;">명상</div>
+        <div style="font-size: 11.5px; font-weight: 500; color: #8A8D95;">31일 연속 · 7/7</div>
+      </div>
+    </div>
+
+    <div style="background: #FFFFFF; border-radius: 18px; padding: 16px; height: 132px; box-sizing: border-box; display: flex; flex-direction: column; justify-content: space-between;">
+      <div style="position: relative; width: 42px; height: 42px;">
+        <svg width="42" height="42" viewBox="0 0 42 42">
+          <circle cx="21" cy="21" r="18" fill="none" stroke="#E4EEF8" stroke-width="4.5"/>
+          <circle cx="21" cy="21" r="18" fill="none" stroke="#1976D2" stroke-width="4.5" stroke-linecap="round" stroke-dasharray="113.1" stroke-dashoffset="34" transform="rotate(-90 21 21)"/>
+        </svg>
+        <div style="position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;">
+          <div style="font-size: 11px; font-weight: 800; color: #1976D2;">70</div>
+        </div>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 3px;">
+        <div style="font-size: 15px; font-weight: 700; letter-spacing: -0.01em;">물 2L</div>
+        <div style="font-size: 11.5px; font-weight: 500; color: #8A8D95;">1.4 / 2.0 L 오늘</div>
+      </div>
+    </div>
+
+    <div style="background: #FFFFFF; border-radius: 18px; padding: 16px; height: 132px; box-sizing: border-box; display: flex; flex-direction: column; justify-content: space-between;">
+      <div style="position: relative; width: 42px; height: 42px;">
+        <svg width="42" height="42" viewBox="0 0 42 42">
+          <circle cx="21" cy="21" r="18" fill="none" stroke="#E0EFED" stroke-width="4.5"/>
+          <circle cx="21" cy="21" r="18" fill="none" stroke="#00897B" stroke-width="4.5" stroke-linecap="round" stroke-dasharray="113.1" stroke-dashoffset="45.2" transform="rotate(-90 21 21)"/>
+        </svg>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 3px;">
+        <div style="font-size: 15px; font-weight: 700; letter-spacing: -0.01em;">영어 단어</div>
+        <div style="font-size: 11.5px; font-weight: 500; color: #8A8D95;">주 3/5회 남음</div>
+      </div>
+    </div>
+
+    <div style="background: #FFFFFF; border-radius: 18px; padding: 16px; height: 132px; box-sizing: border-box; display: flex; flex-direction: column; justify-content: space-between;">
+      <div style="position: relative; width: 42px; height: 42px;">
+        <svg width="42" height="42" viewBox="0 0 42 42">
+          <circle cx="21" cy="21" r="18" fill="none" stroke="#E4F0E5" stroke-width="4.5"/>
+          <circle cx="21" cy="21" r="18" fill="none" stroke="#388E3C" stroke-width="4.5" stroke-linecap="round" stroke-dasharray="113.1" stroke-dashoffset="0" transform="rotate(-90 21 21)"/>
+        </svg>
+        <div style="position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#388E3C" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.8 4.8L19 7.4"/></svg>
+        </div>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 3px;">
+        <div style="font-size: 15px; font-weight: 700; letter-spacing: -0.01em;">독서 30분</div>
+        <div style="font-size: 11.5px; font-weight: 500; color: #8A8D95;">8일 연속 · 7/7</div>
+      </div>
+    </div>
+
+    <div style="background: #FFFFFF; border-radius: 18px; padding: 16px; height: 132px; box-sizing: border-box; display: flex; flex-direction: column; justify-content: space-between;">
+      <div style="position: relative; width: 42px; height: 42px;">
+        <svg width="42" height="42" viewBox="0 0 42 42">
+          <circle cx="21" cy="21" r="18" fill="none" stroke="#F8E4EC" stroke-width="4.5"/>
+          <circle cx="21" cy="21" r="18" fill="none" stroke="#D81B60" stroke-width="4.5" stroke-linecap="round" stroke-dasharray="113.1" stroke-dashoffset="48.5" transform="rotate(-90 21 21)"/>
+        </svg>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 3px;">
+        <div style="font-size: 15px; font-weight: 700; letter-spacing: -0.01em;">일기 쓰기</div>
+        <div style="font-size: 11.5px; font-weight: 500; color: #8A8D95;">5일 연속 · 4/7</div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- bottom nav -->
+  <div style="padding: 14px 44px 28px 44px; display: flex; justify-content: space-between;">
+    <div style="display: flex; flex-direction: column; align-items: center; gap: 4px; width: 60px;">
+      <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="#16171B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><path d="M12 6.5V12l3.5 2"/></svg>
+      <div style="font-size: 10px; font-weight: 700; color: #16171B;">오늘</div>
+    </div>
+    <div style="display: flex; flex-direction: column; align-items: center; gap: 4px; width: 60px;">
+      <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="#9A9DA5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="5" width="17" height="15.5" rx="3"/><path d="M3.5 9.5h17"/></svg>
+      <div style="font-size: 10px; font-weight: 600; color: #9A9DA5;">달력</div>
+    </div>
+    <div style="display: flex; flex-direction: column; align-items: center; gap: 4px; width: 60px;">
+      <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="#9A9DA5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19V9M10 19V5M16 19v-6M22 19H2"/></svg>
+      <div style="font-size: 10px; font-weight: 600; color: #9A9DA5;">통계</div>
+    </div>
+  </div>
+
+</div>
+</x-dc>
+</body>
+</html>

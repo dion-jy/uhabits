@@ -24,3 +24,6 @@ kotlin-js-store
 .kotlin
 tools/.env
 tools/.user
+
+# design canvas build output
+habitloop-redesign.html
