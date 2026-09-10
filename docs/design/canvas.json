@@ -1,22 +1,22 @@
 {
   "artboards": [
-    { "file": "Main.dc.html",      "x": 0,    "y": 0,    "w": 390, "h": 844, "title": "A · 오늘 먼저 — 메인" },
-    { "file": "B_Grid.dc.html",    "x": 470,  "y": 0,    "w": 390, "h": 844, "title": "B · 그리드 — 메인" },
-    { "file": "C_Compact.dc.html", "x": 940,  "y": 0,    "w": 390, "h": 844, "title": "C · 컴팩트 — 메인" },
-    { "file": "D_Journal.dc.html", "x": 1410, "y": 0,    "w": 390, "h": 844, "title": "D · 저널 — 메인" },
-    { "file": "E_Rings.dc.html",   "x": 1880, "y": 0,    "w": 390, "h": 844, "title": "E · 링 — 메인" },
-    { "file": "A_Detail.dc.html",  "x": 0,    "y": 1010, "w": 390, "h": 844, "title": "A · 오늘 먼저 — 상세" },
-    { "file": "B_Detail.dc.html",  "x": 470,  "y": 1010, "w": 390, "h": 844, "title": "B · 그리드 — 상세" },
-    { "file": "C_Detail.dc.html",  "x": 940,  "y": 1010, "w": 390, "h": 844, "title": "C · 컴팩트 — 상세" },
-    { "file": "D_Detail.dc.html",  "x": 1410, "y": 1010, "w": 390, "h": 844, "title": "D · 저널 — 상세" },
-    { "file": "E_Detail.dc.html",  "x": 1880, "y": 1010, "w": 390, "h": 844, "title": "E · 링 — 상세" }
+    { "file": "Main.dc.html",      "x": 0,    "y": 0,    "w": 390, "h": 844, "title": "A · Today first — main" },
+    { "file": "B_Grid.dc.html",    "x": 470,  "y": 0,    "w": 390, "h": 844, "title": "B · Grid — main" },
+    { "file": "C_Compact.dc.html", "x": 940,  "y": 0,    "w": 390, "h": 844, "title": "C · Compact — main" },
+    { "file": "D_Journal.dc.html", "x": 1410, "y": 0,    "w": 390, "h": 844, "title": "D · Journal — main" },
+    { "file": "E_Rings.dc.html",   "x": 1880, "y": 0,    "w": 390, "h": 844, "title": "E · Rings — main" },
+    { "file": "A_Detail.dc.html",  "x": 0,    "y": 1010, "w": 390, "h": 844, "title": "A · Today first — detail" },
+    { "file": "B_Detail.dc.html",  "x": 470,  "y": 1010, "w": 390, "h": 844, "title": "B · Grid — detail" },
+    { "file": "C_Detail.dc.html",  "x": 940,  "y": 1010, "w": 390, "h": 844, "title": "C · Compact — detail" },
+    { "file": "D_Detail.dc.html",  "x": 1410, "y": 1010, "w": 390, "h": 844, "title": "D · Journal — detail" },
+    { "file": "E_Detail.dc.html",  "x": 1880, "y": 1010, "w": 390, "h": 844, "title": "E · Rings — detail" }
   ],
   "annotations": [
-    { "id": "note-a", "x": 0,    "y": -250, "w": 390, "text": "A · 오늘 먼저\n시간대(아침/낮/저녁)로 묶어 오늘 할 것만 보여준다. Things·Amie 계열.\n\n좋은 점 — 매일 여는 화면이 가장 가볍고, 체크가 한 번에 끝난다.\n걸리는 점 — 주간·월간 흐름이 이 화면에 안 보여서 통계 탭에 의존한다." },
-    { "id": "note-b", "x": 470,  "y": -250, "w": 390, "text": "B · 그리드\n주간 체크 그리드를 그대로 유지하되 정리했다. HabitKit·GitHub 잔디 계열. 현재 앱과 가장 가깝다.\n\n좋은 점 — 밀린 습관이 즉시 눈에 띄고, 이전 기록 수정이 쉽다.\n걸리는 점 — 습관이 10개를 넘으면 빽빽해진다." },
-    { "id": "note-c", "x": 940,  "y": -250, "w": 390, "text": "C · 컴팩트\n다크 우선, 촘촘한 행 + 코치 카드 + 빠른 입력 바. Linear·Superhuman 계열.\n\n좋은 점 — 이 포크에만 있는 AI 코치와 동기화 상태가 드디어 앱 안에 자리를 잡는다.\n걸리는 점 — 라이트 모드로 옮기면 인상이 많이 약해진다." },
-    { "id": "note-d", "x": 1410, "y": -250, "w": 390, "text": "D · 저널\n세리프(Hahmlet) 기반 편집 디자인. Bear·Craft 계열.\n\n좋은 점 — 다섯 중 가장 안 흔하고, 습관 앱 특유의 게임 같은 느낌이 없다.\n걸리는 점 — 정보 밀도가 낮고, 하단 '오늘 한 줄'은 지금 앱에 없는 기능이다." },
-    { "id": "note-e", "x": 1880, "y": -250, "w": 390, "text": "E · 링\n습관별 색 타일 + 링 진척. Streaks·피트니스 계열. 색은 지금 앱 팔레트를 그대로 썼다.\n\n좋은 점 — 탭 영역이 크고, 색으로 습관을 구분해 읽는 속도가 빠르다.\n걸리는 점 — 습관 색이 6개를 넘어가면 산만해진다." }
+    { "id": "note-a", "x": 0,    "y": -250, "w": 390, "text": "A · Today first\nGroups habits by time of day and shows only what is due today. Things / Amie territory.\n\nWorks — the screen you open every day is the lightest one here, and checking off is a single pass.\nCosts — weekly and monthly rhythm is not on this screen, so it leans on the Stats tab." },
+    { "id": "note-b", "x": 470,  "y": -250, "w": 390, "text": "B · Grid\nThe weekly check grid, kept but cleaned up. HabitKit / GitHub-contributions territory, and the closest to the app as it stands.\n\nWorks — a habit you are behind on is obvious, and editing past days stays easy.\nCosts — gets crowded past roughly ten habits." },
+    { "id": "note-c", "x": 940,  "y": -250, "w": 390, "text": "C · Compact\nDark-first, tight rows, a coach card and a quick-add bar. Linear / Superhuman territory.\n\nWorks — the AI coach and sync status this fork already has finally live inside the app instead of only in notifications.\nCosts — much weaker once it moves to a light theme." },
+    { "id": "note-d", "x": 1410, "y": -250, "w": 390, "text": "D · Journal\nEditorial and serif-led (Newsreader). Bear / Craft territory.\n\nWorks — least like every other habit app, with none of the gamified feel.\nCosts — low information density, and the 'write a line about today' field is a feature the app does not have yet." },
+    { "id": "note-e", "x": 1880, "y": -250, "w": 390, "text": "E · Rings\nColour-coded tiles with ring progress. Streaks / fitness-app territory. The colours come straight from the app's current palette.\n\nWorks — large tap targets, and colour makes habits fast to tell apart.\nCosts — falls apart past roughly six habit colours." }
   ],
   "launch": { "view": "canvas" }
 }
