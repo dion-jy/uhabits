@@ -46,6 +46,7 @@
     <attr name="dialogFormLabelColor" format="reference"/>
 
     <attr name="toolbarPopupTheme" format="reference"/>
+    <attr name="toolbarTheme" format="reference"/>
 
     <attr name="widgetShadowAlpha" format="float"/>
     <attr name="widgetBackgroundAlpha" format="float"/>

@@ -89,5 +89,5 @@
     </array>
 
     <color name="ic_launcher_background">#7C4DFF</color>
-    <color name="color_background">@color/grey_200</color>
+    <color name="color_background">@color/paper</color>
 </resources>

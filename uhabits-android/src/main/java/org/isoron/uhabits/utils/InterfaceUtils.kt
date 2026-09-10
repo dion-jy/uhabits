@@ -25,10 +25,14 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
 import android.widget.TextView.OnEditorActionListener
+import androidx.core.content.res.ResourcesCompat
 import androidx.core.view.ViewCompat
+import org.isoron.uhabits.R
 
 object InterfaceUtils {
     private var fontAwesome: Typeface? = null
+    private var uiRegular: Typeface? = null
+    private var uiBold: Typeface? = null
     private var fixedResolution: Float? = null
 
     @JvmStatic
@@ -42,6 +46,22 @@ object InterfaceUtils {
             fontAwesome = Typeface.createFromAsset(context.assets, "fontawesome-webfont.ttf")
         }
         return fontAwesome
+    }
+
+    @JvmStatic
+    fun getUiRegular(context: Context): Typeface {
+        if (uiRegular == null) {
+            uiRegular = ResourcesCompat.getFont(context, R.font.instrument_sans_400)
+        }
+        return uiRegular ?: Typeface.DEFAULT
+    }
+
+    @JvmStatic
+    fun getUiBold(context: Context): Typeface {
+        if (uiBold == null) {
+            uiBold = ResourcesCompat.getFont(context, R.font.instrument_sans_600)
+        }
+        return uiBold ?: Typeface.DEFAULT_BOLD
     }
 
     @JvmStatic

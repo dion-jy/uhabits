@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Journal palette. Paper is the light theme, Ink the dark one; both are
+  warm neutrals rather than the grey ramp the upstream themes use, so the
+  hairline rules that carry the layout stay visible without borders.
+-->
+<resources>
+    <!-- Paper -->
+    <color name="paper">#F5F2EA</color>
+    <color name="paper_rule_light">#E7E1D3</color>
+    <color name="paper_rule">#DED7C7</color>
+    <color name="paper_edge">#CFC7B4</color>
+    <color name="paper_faint">#A9A192</color>
+    <color name="paper_muted">#8C8474</color>
+    <color name="paper_ink">#1F1C16</color>
+    <color name="paper_accent">#2F4A38</color>
+
+    <!-- Ink -->
+    <color name="ink">#191713</color>
+    <color name="ink_rule_light">#26241E</color>
+    <color name="ink_rule">#312E26</color>
+    <color name="ink_edge">#474338</color>
+    <color name="ink_faint">#6F685C</color>
+    <color name="ink_muted">#918978</color>
+    <color name="ink_paper">#EDE7D9</color>
+    <color name="ink_accent">#8FB09A</color>
+</resources>
