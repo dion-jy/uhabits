@@ -1,22 +1,27 @@
 {
+  "pages": [
+    { "id": "page-1", "name": "Journal" },
+    { "id": "page-2", "name": "Other directions" }
+  ],
   "artboards": [
-    { "file": "Main.dc.html",      "x": 0,    "y": 0,    "w": 390, "h": 844, "title": "A · Today first — main" },
-    { "file": "B_Grid.dc.html",    "x": 470,  "y": 0,    "w": 390, "h": 844, "title": "B · Grid — main" },
-    { "file": "C_Compact.dc.html", "x": 940,  "y": 0,    "w": 390, "h": 844, "title": "C · Compact — main" },
-    { "file": "D_Journal.dc.html", "x": 1410, "y": 0,    "w": 390, "h": 844, "title": "D · Journal — main" },
-    { "file": "E_Rings.dc.html",   "x": 1880, "y": 0,    "w": 390, "h": 844, "title": "E · Rings — main" },
-    { "file": "A_Detail.dc.html",  "x": 0,    "y": 1010, "w": 390, "h": 844, "title": "A · Today first — detail" },
-    { "file": "B_Detail.dc.html",  "x": 470,  "y": 1010, "w": 390, "h": 844, "title": "B · Grid — detail" },
-    { "file": "C_Detail.dc.html",  "x": 940,  "y": 1010, "w": 390, "h": 844, "title": "C · Compact — detail" },
-    { "file": "D_Detail.dc.html",  "x": 1410, "y": 1010, "w": 390, "h": 844, "title": "D · Journal — detail" },
-    { "file": "E_Detail.dc.html",  "x": 1880, "y": 1010, "w": 390, "h": 844, "title": "E · Rings — detail" }
+    { "file": "Main.dc.html",      "page": "page-1", "x": 0,    "y": 0, "w": 390, "h": 844, "title": "Today — paper" },
+    { "file": "D_Dark.dc.html",    "page": "page-1", "x": 470,  "y": 0, "w": 390, "h": 844, "title": "Today — ink" },
+    { "file": "D_Detail.dc.html",  "page": "page-1", "x": 940,  "y": 0, "w": 390, "h": 844, "title": "Habit detail" },
+    { "file": "D_New.dc.html",     "page": "page-1", "x": 1410, "y": 0, "w": 390, "h": 844, "title": "New habit" },
+    { "file": "D_Settings.dc.html","page": "page-1", "x": 1880, "y": 0, "w": 390, "h": 844, "title": "Settings" },
+
+    { "file": "A_Today.dc.html",   "page": "page-2", "x": 0,    "y": 0,    "w": 390, "h": 844, "title": "A · Today first — main" },
+    { "file": "B_Grid.dc.html",    "page": "page-2", "x": 470,  "y": 0,    "w": 390, "h": 844, "title": "B · Grid — main" },
+    { "file": "C_Compact.dc.html", "page": "page-2", "x": 940,  "y": 0,    "w": 390, "h": 844, "title": "C · Compact — main" },
+    { "file": "E_Rings.dc.html",   "page": "page-2", "x": 1410, "y": 0,    "w": 390, "h": 844, "title": "E · Rings — main" },
+    { "file": "A_Detail.dc.html",  "page": "page-2", "x": 0,    "y": 1010, "w": 390, "h": 844, "title": "A · Today first — detail" },
+    { "file": "B_Detail.dc.html",  "page": "page-2", "x": 470,  "y": 1010, "w": 390, "h": 844, "title": "B · Grid — detail" },
+    { "file": "C_Detail.dc.html",  "page": "page-2", "x": 940,  "y": 1010, "w": 390, "h": 844, "title": "C · Compact — detail" },
+    { "file": "E_Detail.dc.html",  "page": "page-2", "x": 1410, "y": 1010, "w": 390, "h": 844, "title": "E · Rings — detail" }
   ],
   "annotations": [
-    { "id": "note-a", "x": 0,    "y": -250, "w": 390, "text": "A · Today first\nGroups habits by time of day and shows only what is due today. Things / Amie territory.\n\nWorks — the screen you open every day is the lightest one here, and checking off is a single pass.\nCosts — weekly and monthly rhythm is not on this screen, so it leans on the Stats tab." },
-    { "id": "note-b", "x": 470,  "y": -250, "w": 390, "text": "B · Grid\nThe weekly check grid, kept but cleaned up. HabitKit / GitHub-contributions territory, and the closest to the app as it stands.\n\nWorks — a habit you are behind on is obvious, and editing past days stays easy.\nCosts — gets crowded past roughly ten habits." },
-    { "id": "note-c", "x": 940,  "y": -250, "w": 390, "text": "C · Compact\nDark-first, tight rows, a coach card and a quick-add bar. Linear / Superhuman territory.\n\nWorks — the AI coach and sync status this fork already has finally live inside the app instead of only in notifications.\nCosts — much weaker once it moves to a light theme." },
-    { "id": "note-d", "x": 1410, "y": -250, "w": 390, "text": "D · Journal\nEditorial and serif-led (Newsreader). Bear / Craft territory.\n\nWorks — least like every other habit app, with none of the gamified feel.\nCosts — low information density, and the 'write a line about today' field is a feature the app does not have yet." },
-    { "id": "note-e", "x": 1880, "y": -250, "w": 390, "text": "E · Rings\nColour-coded tiles with ring progress. Streaks / fitness-app territory. The colours come straight from the app's current palette.\n\nWorks — large tap targets, and colour makes habits fast to tell apart.\nCosts — falls apart past roughly six habit colours." }
+    { "id": "note-journal", "page": "page-1", "x": 0, "y": -300, "w": 860, "text": "Journal — the chosen direction, filled out.\n\nNewsreader for content, Instrument Sans for labels and numerals. Paper ground, hairline rules instead of cards, one deep-green accent. Nothing is a container: hierarchy comes from type size and rule weight.\n\nThe ink theme is the same screen recoloured, not a second design — the app already ships light / dark / AMOLED, so 'Black' in Settings still needs drawing.\n\nTwo things here are not in the app yet: the 'write a line about today' field at the bottom of the list, and the linked-agent row in Settings showing coaching as an in-app toggle rather than only a notification channel." },
+    { "id": "note-others", "page": "page-2", "x": 0, "y": -220, "w": 860, "text": "The four directions not taken, kept for reference. Each is one main screen and one detail screen, in English, with its own type voice: A Instrument Sans, B IBM Plex Sans, C Space Grotesk, E Figtree." }
   ],
-  "launch": { "view": "canvas" }
+  "launch": { "view": "canvas", "page": "page-1" }
 }
